@@ -1,6 +1,6 @@
 // 1) Deploy Apps Script as Web App.
 // 2) Paste the /exec URL below.
-const API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_EXEC_URL_HERE';
+const API_URL = 'https://script.google.com/macros/s/AKfycbymJ_OflCYsIJdR9IEUS_iwEym2AfI7WNurbIt64YXZkJEKLJcXi3sAnEhCv-qBR8EN/exec';
 
 let state = {
   users: [],
