@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nem chua rán XCG SH</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Công cụ nội bộ</p>
+      <h1>Nem chua rán XCG SH</h1>
+      <p class="subtitle">Dự đoán kết quả · Theo dõi tỉ số · Bảng xếp hạng nem chua</p>
+    </div>
+    <button id="refreshBtn" class="ghost-btn" type="button">Làm mới dữ liệu</button>
+  </header>
+
+  <nav class="tabs" aria-label="Điều hướng trang">
+    <button class="tab active" data-page="predictPage" type="button">Dự đoán kết quả</button>
+    <button class="tab" data-page="trackingPage" type="button">Theo dõi kết quả</button>
+  </nav>
+
+  <main>
+    <section id="predictPage" class="page active">
+      <div class="grid two-cols">
+        <section class="card">
+          <h2>1. Chọn thông tin</h2>
+          <label for="userSelect">Tên người dùng</label>
+          <select id="userSelect">
+            <option value="">Đang tải danh sách...</option>
+          </select>
+
+          <label for="matchSelect">Trận đấu</label>
+          <select id="matchSelect">
+            <option value="">Đang tải trận đấu...</option>
+          </select>
+        </section>
+
+        <section class="card highlight-card">
+          <h2>Thông tin đã chọn</h2>
+          <div class="info-grid">
+            <div>
+              <span>Người dùng</span>
+              <strong id="selectedUserName">-</strong>
+            </div>
+            <div>
+              <span>Số nem chua đã đóng góp</span>
+              <strong id="selectedContribution">-</strong>
+            </div>
+            <div>
+              <span>Trận đấu</span>
+              <strong id="selectedMatchName">-</strong>
+            </div>
+            <div>
+              <span>Ngày · Giờ</span>
+              <strong id="selectedDateTime">-</strong>
+            </div>
+            <div>
+              <span>Gia vị</span>
+              <strong id="selectedHandicap">-</strong>
+            </div>
+            <div>
+              <span>Dự đoán hiện tại</span>
+              <strong id="currentPrediction">-</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="card prediction-card">
+        <h2>2. Dự đoán kết quả trận đấu</h2>
+        <p class="hint">Chọn một kết quả. Hệ thống sẽ ghi đè vào đúng ô giao giữa người dùng và trận đấu trong Google Sheet.</p>
+        <div class="prediction-options" role="group" aria-label="Dự đoán">
+          <button class="prediction-btn" data-prediction="Thắng" type="button">Thắng</button>
+          <button class="prediction-btn" data-prediction="Hòa" type="button">Hòa</button>
+          <button class="prediction-btn" data-prediction="Thua" type="button">Thua</button>
+        </div>
+        <div id="statusBox" class="status-box" role="status">Sẵn sàng.</div>
+      </section>
+    </section>
+
+    <section id="trackingPage" class="page">
+      <div class="grid three-cols">
+        <section class="card table-card">
+          <div class="section-head">
+            <h2>Tỷ số các trận đã có kết quả</h2>
+            <span id="finishedCount" class="pill">0 trận</span>
+          </div>
+          <div id="scoreTable" class="table-wrap"></div>
+        </section>
+
+        <section class="card table-card">
+          <div class="section-head">
+            <h2>Các trận đấu sắp tới</h2>
+            <span id="upcomingCount" class="pill">0 trận</span>
+          </div>
+          <div id="upcomingTable" class="table-wrap"></div>
+        </section>
+
+        <section class="card table-card">
+          <div class="section-head">
+            <h2>BXH đóng góp nem chua</h2>
+            <span class="pill">Tăng dần</span>
+          </div>
+          <div id="rankingTable" class="table-wrap"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span id="lastUpdated">Chưa tải dữ liệu.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
