@@ -64,6 +64,10 @@
               <span>Dự đoán hiện tại</span>
               <strong id="currentPrediction">-</strong>
             </div>
+            <div class="full-info-row">
+              <span>Trạng thái dự đoán</span>
+              <strong id="predictionLockStatus">-</strong>
+            </div>
           </div>
         </section>
       </div>
@@ -71,7 +75,7 @@
       <div class="prediction-expert-grid">
         <section class="card prediction-card compact-prediction-card">
           <h2>2. Dự đoán kết quả trận đấu</h2>
-          <p class="hint">Chọn một kết quả. Hệ thống sẽ ghi đè vào đúng ô giao giữa người dùng và trận đấu trong Google Sheet.</p>
+          <p class="hint">Dự đoán sẽ tự khóa trước giờ thi đấu 15 phút.</p>
           <div class="prediction-options" role="group" aria-label="Dự đoán">
             <button class="prediction-btn" data-prediction="Thắng" type="button">Thắng</button>
             <button class="prediction-btn" data-prediction="Hòa" type="button">Hòa</button>

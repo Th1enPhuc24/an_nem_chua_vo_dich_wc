@@ -1,5 +1,4 @@
-// 1) Deploy Apps Script as Web App.
-// 2) Paste the /exec URL below.
+// Apps Script Web App /exec URL.
 const API_URL = 'https://script.google.com/macros/s/AKfycbymJ_OflCYsIJdR9IEUS_iwEym2AfI7WNurbIt64YXZkJEKLJcXi3sAnEhCv-qBR8EN/exec';
 
 let state = {
@@ -8,7 +7,8 @@ let state = {
   finishedMatches: [],
   upcomingMatches: [],
   rankings: [],
-  predictionMap: {}
+  predictionMap: {},
+  lockRule: { minutesBeforeMatch: 15 }
 };
 
 const els = {
@@ -20,6 +20,7 @@ const els = {
   selectedDateTime: document.getElementById('selectedDateTime'),
   selectedHandicap: document.getElementById('selectedHandicap'),
   currentPrediction: document.getElementById('currentPrediction'),
+  predictionLockStatus: document.getElementById('predictionLockStatus'),
   statusBox: document.getElementById('statusBox'),
   scoreTable: document.getElementById('scoreTable'),
   upcomingTable: document.getElementById('upcomingTable'),
@@ -79,7 +80,6 @@ function jsonpGet(params = {}) {
 async function postPrediction(payload) {
   assertApiUrl();
 
-  // no-cors: browser sends the request but hides the response.
   await fetch(API_URL, {
     method: 'POST',
     mode: 'no-cors',
@@ -103,6 +103,7 @@ async function loadData() {
 
     els.lastUpdated.textContent = 'Cập nhật lần cuối: ' + new Date().toLocaleString('vi-VN');
     setStatus('Đã tải dữ liệu.', 'success');
+    updatePredictionAvailability(false);
   } catch (err) {
     setStatus(err.message, 'error');
   }
@@ -131,7 +132,7 @@ function renderMatchSelect() {
   state.matches.forEach(match => {
     const option = document.createElement('option');
     option.value = match.matchName;
-    option.textContent = [match.date, match.time, match.matchName].filter(Boolean).join(' · ');
+    option.textContent = [match.date, match.time, match.matchName, match.isPredictionLocked ? 'Đã khóa' : 'Còn mở'].filter(Boolean).join(' · ');
     els.matchSelect.appendChild(option);
   });
 
@@ -150,7 +151,41 @@ function updateSelectedInfo() {
   els.selectedDateTime.textContent = match ? [match.date, match.time].filter(Boolean).join(' · ') : '-';
   els.selectedHandicap.textContent = match ? (match.handicap || 'Không có') : '-';
   els.currentPrediction.textContent = getCurrentPrediction() || '-';
+  els.predictionLockStatus.textContent = getLockStatusText(match);
+
   renderExpertOpinions();
+  updatePredictionAvailability(true);
+}
+
+function getLockStatusText(match) {
+  if (!match) return '-';
+  if (match.isPredictionLocked) return 'Đã khóa từ ' + (match.lockAt || '-');
+  return 'Còn mở. Khóa lúc ' + (match.lockAt || '-');
+}
+
+function updatePredictionAvailability(showStatusMessage = true) {
+  const user = getSelectedUser();
+  const match = getSelectedMatch();
+  const buttons = document.querySelectorAll('.prediction-btn');
+  const disabled = !user || !match || Boolean(match.isPredictionLocked);
+
+  buttons.forEach(btn => {
+    btn.disabled = disabled;
+  });
+
+  if (!showStatusMessage) return;
+
+  if (!user || !match) {
+    setStatus('Vui lòng chọn tên và trận đấu trước khi dự đoán.', 'warning');
+    return;
+  }
+
+  if (match.isPredictionLocked) {
+    setStatus('Trận này đã khóa dự đoán từ ' + (match.lockAt || '-') + '.', 'error');
+    return;
+  }
+
+  setStatus('Trận này còn mở dự đoán. Hạn chót: ' + (match.lockAt || '-') + '.', 'success');
 }
 
 function getSelectedUser() {
@@ -167,7 +202,6 @@ function getCurrentPrediction() {
   if (!user || !match) return '';
   return getPredictionFor(match, user);
 }
-
 
 function getPredictionFor(match, user) {
   if (!match || !user) return '';
@@ -222,6 +256,11 @@ async function handlePredictionClick(prediction) {
     return;
   }
 
+  if (match.isPredictionLocked) {
+    setStatus('Trận này đã khóa dự đoán từ ' + (match.lockAt || '-') + '.', 'error');
+    return;
+  }
+
   setStatus('Đang gửi dự đoán...', 'loading');
 
   try {
@@ -231,7 +270,6 @@ async function handlePredictionClick(prediction) {
       prediction
     });
 
-    // Apps Script POST response is opaque in no-cors mode, so reload data to verify.
     await sleep(1200);
     await loadData();
 
@@ -239,7 +277,7 @@ async function handlePredictionClick(prediction) {
     if (savedValue === prediction) {
       setStatus('Đã lưu dự đoán: ' + prediction, 'success');
     } else {
-      setStatus('Đã gửi yêu cầu. Nếu chưa thấy cập nhật, kiểm tra quyền Web App hoặc thử làm mới dữ liệu.', 'warning');
+      setStatus('Đã gửi yêu cầu. Nếu chưa thấy cập nhật, trận có thể đã khóa hoặc Web App chưa được deploy bản mới.', 'warning');
     }
   } catch (err) {
     setStatus(err.message, 'error');
@@ -258,11 +296,12 @@ function renderTrackingTables() {
     m.resultAfterHandicap || '-'
   ]), 'Chưa có trận nào có kết quả.');
 
-  renderTable(els.upcomingTable, ['Ngày', 'Giờ', 'Trận đấu', 'Gia vị'], state.upcomingMatches.map(m => [
+  renderTable(els.upcomingTable, ['Ngày', 'Giờ', 'Trận đấu', 'Gia vị', 'Trạng thái'], state.upcomingMatches.map(m => [
     m.date,
     m.time,
     m.matchName,
-    m.handicap || '-'
+    m.handicap || '-',
+    m.isPredictionLocked ? 'Đã khóa' : 'Còn mở đến ' + (m.lockAt || '-')
   ]), 'Không còn trận sắp tới.');
 
   renderTable(els.rankingTable, ['Tên người dùng', 'Số nem chua đã đóng góp'], state.rankings.map(u => [

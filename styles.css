@@ -90,7 +90,7 @@ h2 {
 }
 
 .tab.active,
-.prediction-btn:hover,
+.prediction-btn:hover:not(:disabled),
 .ghost-btn:hover {
   background: var(--accent);
   color: #fff;
@@ -113,10 +113,6 @@ h2 {
 
 .two-cols {
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-}
-
-.three-cols {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .card {
@@ -161,6 +157,10 @@ select {
   padding: 14px;
 }
 
+.info-grid .full-info-row {
+  grid-column: 1 / -1;
+}
+
 .info-grid span {
   display: block;
   color: var(--muted);
@@ -189,6 +189,11 @@ select {
 
 .expert-card {
   min-width: 0;
+}
+
+.hint {
+  margin-top: -8px;
+  color: var(--muted);
 }
 
 .expert-hint {
@@ -236,11 +241,6 @@ select {
   font-weight: 700;
 }
 
-.hint {
-  margin-top: -8px;
-  color: var(--muted);
-}
-
 .prediction-options {
   display: flex;
   gap: 12px;
@@ -253,6 +253,13 @@ select {
   background: var(--accent-soft);
   color: var(--accent-dark);
   font-size: 16px;
+}
+
+.prediction-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  background: #e5e7eb;
+  color: #6b7280;
 }
 
 .status-box {
@@ -335,16 +342,6 @@ footer {
   font-size: 13px;
 }
 
-@media (max-width: 960px) {
-  .app-header { align-items: flex-start; flex-direction: column; }
-  .two-cols,
-  .three-cols,
-  .prediction-expert-grid { grid-template-columns: 1fr; }
-  .info-grid { grid-template-columns: 1fr; }
-  .expert-opinions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 320px; }
-}
-
-/* Tracking page layout: two horizontal tables on the left, ranking on the right */
 .tracking-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.9fr);
@@ -405,23 +402,22 @@ footer {
   white-space: nowrap;
 }
 
-@media (max-width: 960px) {
-  .tracking-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .score-table-wrap,
-  .upcoming-table-wrap,
-  .ranking-table-wrap {
-    max-height: 520px;
-  }
-}
-
-
 @media (min-width: 1180px) {
   .expert-opinions-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
+}
+
+@media (max-width: 960px) {
+  .app-header { align-items: flex-start; flex-direction: column; }
+  .two-cols,
+  .prediction-expert-grid,
+  .tracking-layout { grid-template-columns: 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  .expert-opinions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 320px; }
+  .score-table-wrap,
+  .upcoming-table-wrap,
+  .ranking-table-wrap { max-height: 520px; }
 }
 
 @media (max-width: 640px) {
