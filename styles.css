@@ -279,3 +279,76 @@ footer {
   .three-cols { grid-template-columns: 1fr; }
   .info-grid { grid-template-columns: 1fr; }
 }
+
+/* Tracking page layout: two horizontal tables on the left, ranking on the right */
+.tracking-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.9fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.tracking-left {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 22px;
+  min-width: 0;
+}
+
+.score-card,
+.upcoming-card,
+.ranking-card {
+  min-width: 0;
+}
+
+.score-table-wrap {
+  max-height: 300px;
+}
+
+.upcoming-table-wrap {
+  max-height: 420px;
+}
+
+.ranking-card {
+  height: 100%;
+}
+
+.ranking-table-wrap {
+  max-height: 748px;
+}
+
+#scoreTable table th:nth-child(1),
+#scoreTable table td:nth-child(1),
+#upcomingTable table th:nth-child(1),
+#upcomingTable table td:nth-child(1) {
+  width: 120px;
+  white-space: nowrap;
+}
+
+#scoreTable table th:nth-child(2),
+#scoreTable table td:nth-child(2),
+#upcomingTable table th:nth-child(2),
+#upcomingTable table td:nth-child(2) {
+  width: 90px;
+  white-space: nowrap;
+}
+
+#scoreTable table th:nth-child(4),
+#scoreTable table td:nth-child(4),
+#upcomingTable table th:nth-child(4),
+#upcomingTable table td:nth-child(4) {
+  width: 100px;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .tracking-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .score-table-wrap,
+  .upcoming-table-wrap,
+  .ranking-table-wrap {
+    max-height: 520px;
+  }
+}
