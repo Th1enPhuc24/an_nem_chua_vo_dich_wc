@@ -22,6 +22,9 @@ const els = {
   currentPrediction: document.getElementById('currentPrediction'),
   predictionLockStatus: document.getElementById('predictionLockStatus'),
   statusBox: document.getElementById('statusBox'),
+  todayTomorrowTable: document.getElementById('todayTomorrowTable'),
+  todayTomorrowCount: document.getElementById('todayTomorrowCount'),
+  handicapExplanation: document.getElementById('handicapExplanation'),
   scoreTable: document.getElementById('scoreTable'),
   upcomingTable: document.getElementById('upcomingTable'),
   rankingTable: document.getElementById('rankingTable'),
@@ -98,6 +101,7 @@ async function loadData() {
     state = data;
     renderUserSelect();
     renderMatchSelect();
+    renderTodayTomorrowMatches();
     renderTrackingTables();
     updateSelectedInfo();
 
@@ -132,7 +136,7 @@ function renderMatchSelect() {
   state.matches.forEach(match => {
     const option = document.createElement('option');
     option.value = match.matchName;
-    option.textContent = [match.date, match.time, match.matchName, match.isPredictionLocked ? 'Đã khóa' : 'Còn mở'].filter(Boolean).join(' · ');
+    option.textContent = [match.date, match.time, match.matchName, isMatchLockedNow(match) ? 'Đã khóa' : 'Còn mở'].filter(Boolean).join(' · ');
     els.matchSelect.appendChild(option);
   });
 
@@ -152,6 +156,7 @@ function updateSelectedInfo() {
   els.selectedHandicap.textContent = match ? (match.handicap || 'Không có') : '-';
   els.currentPrediction.textContent = getCurrentPrediction() || '-';
   els.predictionLockStatus.textContent = getLockStatusText(match);
+  els.handicapExplanation.textContent = getHandicapExplanation(match);
 
   renderExpertOpinions();
   updatePredictionAvailability(true);
@@ -159,15 +164,145 @@ function updateSelectedInfo() {
 
 function getLockStatusText(match) {
   if (!match) return '-';
-  if (match.isPredictionLocked) return 'Đã khóa từ ' + (match.lockAt || '-');
+  if (isMatchLockedNow(match)) return 'Đã khóa từ ' + (match.lockAt || '-');
   return 'Còn mở. Khóa lúc ' + (match.lockAt || '-');
+}
+
+function isMatchLockedNow(match) {
+  if (!match) return false;
+  if (match.lockAtIso) {
+    const lockDate = new Date(match.lockAtIso);
+    if (!Number.isNaN(lockDate.getTime())) {
+      return Date.now() >= lockDate.getTime();
+    }
+  }
+  return Boolean(match.isPredictionLocked);
+}
+
+function getMatchStatusText(match) {
+  if (!match) return '-';
+  return isMatchLockedNow(match) ? 'Đã khóa' : 'Còn mở đến ' + (match.lockAt || '-');
+}
+
+function getDateKeyFromDisplay(dateText) {
+  const m = String(dateText || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return '';
+  return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+}
+
+function getDateKeyInVietnam(date) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).formatToParts(date).reduce((obj, item) => {
+    obj[item.type] = item.value;
+    return obj;
+  }, {});
+  return parts.year + '-' + parts.month + '-' + parts.day;
+}
+
+function getTodayAndTomorrowKeys() {
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  return new Set([getDateKeyInVietnam(now), getDateKeyInVietnam(tomorrow)]);
+}
+
+function compareMatchDateTime(a, b) {
+  const dateCompare = getDateKeyFromDisplay(a.date).localeCompare(getDateKeyFromDisplay(b.date));
+  if (dateCompare !== 0) return dateCompare;
+  return String(a.time || '').localeCompare(String(b.time || ''));
+}
+
+function renderTodayTomorrowMatches() {
+  if (!els.todayTomorrowTable || !els.todayTomorrowCount) return;
+
+  const keys = getTodayAndTomorrowKeys();
+  const rows = state.matches
+    .filter(match => keys.has(getDateKeyFromDisplay(match.date)))
+    .slice()
+    .sort(compareMatchDateTime);
+
+  els.todayTomorrowCount.textContent = rows.length + ' trận';
+  renderTable(els.todayTomorrowTable, ['Tên trận đấu', 'Ngày', 'Giờ', 'Gia vị', 'Trạng thái dự đoán'], rows.map(match => [
+    match.matchName,
+    match.date,
+    match.time,
+    match.handicap || '-',
+    getMatchStatusText(match)
+  ]), 'Không có trận đấu nào trong hôm nay và ngày mai.');
+}
+
+function splitTeams(matchName) {
+  const parts = String(matchName || '').split(/\s+[-–—]\s+/).map(part => part.trim()).filter(Boolean);
+  if (parts.length >= 2) return { teamA: parts[0], teamB: parts.slice(1).join(' - ') };
+  return { teamA: String(matchName || '').trim() || 'Đội A', teamB: 'Đội B' };
+}
+
+function parseHandicapValue(value) {
+  const text = String(value || '').replace(',', '.').trim();
+  const n = Number(text);
+  return Number.isFinite(n) ? n : null;
+}
+
+function formatGoalCount(n) {
+  return n + ' bàn';
+}
+
+function getHandicapExplanation(match) {
+  if (!match) return 'Chọn trận đấu để xem cách tính gia vị.';
+
+  const handicap = parseHandicapValue(match.handicap);
+  if (handicap === null) return 'Trận này chưa có dữ liệu gia vị/chấp.';
+
+  const { teamA, teamB } = splitTeams(match.matchName);
+  const displayHandicap = match.handicap || String(handicap).replace('.', ',');
+
+  if (handicap < 0) {
+    return 'Gia vị đang là số âm (' + displayHandicap + '). Bản giải thích tự động hiện ưu tiên trường hợp đội A chấp đội B; vui lòng kiểm tra lại dữ liệu gia vị của trận này.';
+  }
+
+  if (Number.isInteger(handicap)) {
+    if (handicap === 0) {
+      return 'Gia vị ' + displayHandicap + ': Nếu ' + teamA + ' thắng ' + teamB + ' thì kết quả là Thắng. Nếu hai đội hòa thì kết quả là Hòa. Nếu ' + teamA + ' thua ' + teamB + ' thì kết quả là Thua.';
+    }
+
+    const winLine = 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + formatGoalCount(handicap + 1) + ' trở lên thì kết quả là Thắng.';
+    const drawLine = 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt đúng ' + formatGoalCount(handicap) + ' thì kết quả là Hòa.';
+    const loseLine = handicap - 1 <= 0
+      ? 'Nếu ' + teamA + ' hòa hoặc thua ' + teamB + ' thì kết quả là Thua.'
+      : 'Nếu ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + formatGoalCount(handicap - 1) + ', hoặc hòa/thua trước ' + teamB + ', thì kết quả là Thua.';
+
+    return 'Gia vị ' + displayHandicap + ': ' + winLine + ' ' + drawLine + ' ' + loseLine;
+  }
+
+  const upper = Math.ceil(handicap);
+  const lower = Math.floor(handicap);
+  const winLine = 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + formatGoalCount(upper) + ' trở lên thì kết quả là Thắng.';
+  const loseLine = lower <= 0
+    ? 'Nếu ' + teamA + ' hòa hoặc thua ' + teamB + ' thì kết quả là Thua.'
+    : 'Nếu ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + formatGoalCount(lower) + ', hoặc hòa/thua trước ' + teamB + ', thì kết quả là Thua.';
+
+  return 'Gia vị ' + displayHandicap + ': ' + winLine + ' ' + loseLine;
+}
+
+function refreshRealtimeViews() {
+  const selectedMatch = els.matchSelect.value;
+  renderMatchSelect();
+  if (selectedMatch && state.matches.some(m => m.matchName === selectedMatch)) {
+    els.matchSelect.value = selectedMatch;
+  }
+  renderTodayTomorrowMatches();
+  renderTrackingTables();
+  updateSelectedInfo();
 }
 
 function updatePredictionAvailability(showStatusMessage = true) {
   const user = getSelectedUser();
   const match = getSelectedMatch();
   const buttons = document.querySelectorAll('.prediction-btn');
-  const disabled = !user || !match || Boolean(match.isPredictionLocked);
+  const disabled = !user || !match || isMatchLockedNow(match);
 
   buttons.forEach(btn => {
     btn.disabled = disabled;
@@ -180,7 +315,7 @@ function updatePredictionAvailability(showStatusMessage = true) {
     return;
   }
 
-  if (match.isPredictionLocked) {
+  if (isMatchLockedNow(match)) {
     setStatus('Trận này đã khóa dự đoán từ ' + (match.lockAt || '-') + '.', 'error');
     return;
   }
@@ -256,7 +391,7 @@ async function handlePredictionClick(prediction) {
     return;
   }
 
-  if (match.isPredictionLocked) {
+  if (isMatchLockedNow(match)) {
     setStatus('Trận này đã khóa dự đoán từ ' + (match.lockAt || '-') + '.', 'error');
     return;
   }
@@ -301,7 +436,7 @@ function renderTrackingTables() {
     m.time,
     m.matchName,
     m.handicap || '-',
-    m.isPredictionLocked ? 'Đã khóa' : 'Còn mở đến ' + (m.lockAt || '-')
+    getMatchStatusText(m)
   ]), 'Không còn trận sắp tới.');
 
   renderTable(els.rankingTable, ['Tên người dùng', 'Số nem chua đã đóng góp'], state.rankings.map(u => [
@@ -354,6 +489,7 @@ function setupEvents() {
   els.userSelect.addEventListener('change', updateSelectedInfo);
   els.matchSelect.addEventListener('change', updateSelectedInfo);
   els.refreshBtn.addEventListener('click', loadData);
+  window.setInterval(refreshRealtimeViews, 30000);
 
   document.querySelectorAll('.prediction-btn').forEach(btn => {
     btn.addEventListener('click', () => handlePredictionClick(btn.dataset.prediction));

@@ -124,6 +124,46 @@ h2 {
   backdrop-filter: blur(10px);
 }
 
+
+.today-tomorrow-card {
+  margin-bottom: 18px;
+}
+
+.selection-grid {
+  margin-top: 0;
+}
+
+.today-tomorrow-table-wrap {
+  max-height: 300px;
+}
+
+#todayTomorrowTable table th:nth-child(1),
+#todayTomorrowTable table td:nth-child(1) {
+  min-width: 220px;
+}
+
+#todayTomorrowTable table th:nth-child(2),
+#todayTomorrowTable table td:nth-child(2),
+#todayTomorrowTable table th:nth-child(3),
+#todayTomorrowTable table td:nth-child(3),
+#todayTomorrowTable table th:nth-child(4),
+#todayTomorrowTable table td:nth-child(4) {
+  width: 120px;
+  white-space: nowrap;
+}
+
+.handicap-explanation-row {
+  background: rgba(255, 247, 237, 0.88) !important;
+}
+
+.handicap-explanation {
+  margin: 0;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.55;
+  font-size: 14px;
+}
+
 label {
   display: block;
   margin: 16px 0 8px;

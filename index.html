@@ -23,7 +23,16 @@
 
   <main>
     <section id="predictPage" class="page active">
-      <div class="grid two-cols">
+      <section class="card today-tomorrow-card">
+        <div class="section-head">
+          <h2>Lịch thi đấu hôm nay & ngày mai</h2>
+          <span id="todayTomorrowCount" class="pill">0 trận</span>
+        </div>
+        <p class="hint">Chỉ hiển thị các trận trong ngày hôm nay và ngày mai theo thời gian thực.</p>
+        <div id="todayTomorrowTable" class="table-wrap today-tomorrow-table-wrap"></div>
+      </section>
+
+      <div class="grid two-cols selection-grid">
         <section class="card">
           <h2>1. Chọn thông tin</h2>
           <label for="userSelect">Tên người dùng</label>
@@ -67,6 +76,10 @@
             <div class="full-info-row">
               <span>Trạng thái dự đoán</span>
               <strong id="predictionLockStatus">-</strong>
+            </div>
+            <div class="full-info-row handicap-explanation-row">
+              <span>Giải thích gia vị</span>
+              <p id="handicapExplanation" class="handicap-explanation">Chọn trận đấu để xem cách tính gia vị.</p>
             </div>
           </div>
         </section>
