@@ -68,16 +68,29 @@
         </section>
       </div>
 
-      <section class="card prediction-card">
-        <h2>2. Dự đoán kết quả trận đấu</h2>
-        <p class="hint">Chọn một kết quả. Hệ thống sẽ ghi đè vào đúng ô giao giữa người dùng và trận đấu trong Google Sheet.</p>
-        <div class="prediction-options" role="group" aria-label="Dự đoán">
-          <button class="prediction-btn" data-prediction="Thắng" type="button">Thắng</button>
-          <button class="prediction-btn" data-prediction="Hòa" type="button">Hòa</button>
-          <button class="prediction-btn" data-prediction="Thua" type="button">Thua</button>
-        </div>
-        <div id="statusBox" class="status-box" role="status">Sẵn sàng.</div>
-      </section>
+      <div class="prediction-expert-grid">
+        <section class="card prediction-card compact-prediction-card">
+          <h2>2. Dự đoán kết quả trận đấu</h2>
+          <p class="hint">Chọn một kết quả. Hệ thống sẽ ghi đè vào đúng ô giao giữa người dùng và trận đấu trong Google Sheet.</p>
+          <div class="prediction-options" role="group" aria-label="Dự đoán">
+            <button class="prediction-btn" data-prediction="Thắng" type="button">Thắng</button>
+            <button class="prediction-btn" data-prediction="Hòa" type="button">Hòa</button>
+            <button class="prediction-btn" data-prediction="Thua" type="button">Thua</button>
+          </div>
+          <div id="statusBox" class="status-box" role="status">Sẵn sàng.</div>
+        </section>
+
+        <section class="card expert-card">
+          <div class="section-head">
+            <h2>Ý kiến các chuyên gia về trận đấu</h2>
+            <span id="expertOpinionCount" class="pill">0 ý kiến</span>
+          </div>
+          <p class="hint expert-hint">Hiển thị dự đoán của tất cả người dùng cho trận đấu đang chọn.</p>
+          <div id="expertOpinions" class="expert-opinions-grid">
+            <p class="empty">Chọn một trận đấu để xem ý kiến.</p>
+          </div>
+        </section>
+      </div>
     </section>
 
     <section id="trackingPage" class="page">

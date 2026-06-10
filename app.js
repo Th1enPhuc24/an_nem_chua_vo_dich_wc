@@ -26,6 +26,8 @@ const els = {
   rankingTable: document.getElementById('rankingTable'),
   finishedCount: document.getElementById('finishedCount'),
   upcomingCount: document.getElementById('upcomingCount'),
+  expertOpinions: document.getElementById('expertOpinions'),
+  expertOpinionCount: document.getElementById('expertOpinionCount'),
   lastUpdated: document.getElementById('lastUpdated'),
   refreshBtn: document.getElementById('refreshBtn')
 };
@@ -148,6 +150,7 @@ function updateSelectedInfo() {
   els.selectedDateTime.textContent = match ? [match.date, match.time].filter(Boolean).join(' · ') : '-';
   els.selectedHandicap.textContent = match ? (match.handicap || 'Không có') : '-';
   els.currentPrediction.textContent = getCurrentPrediction() || '-';
+  renderExpertOpinions();
 }
 
 function getSelectedUser() {
@@ -162,7 +165,52 @@ function getCurrentPrediction() {
   const user = getSelectedUser();
   const match = getSelectedMatch();
   if (!user || !match) return '';
+  return getPredictionFor(match, user);
+}
+
+
+function getPredictionFor(match, user) {
+  if (!match || !user) return '';
   return state.predictionMap[match.rowIndex + '_' + user.colIndex] || '';
+}
+
+function renderExpertOpinions() {
+  const match = getSelectedMatch();
+
+  if (!els.expertOpinions || !els.expertOpinionCount) return;
+
+  if (!match) {
+    els.expertOpinionCount.textContent = '0 ý kiến';
+    els.expertOpinions.innerHTML = '<p class="empty">Chọn một trận đấu để xem ý kiến.</p>';
+    return;
+  }
+
+  const opinionRows = state.users.map(user => {
+    const prediction = getPredictionFor(match, user);
+    return {
+      name: user.name,
+      prediction: prediction || 'Chưa dự đoán',
+      hasPrediction: Boolean(prediction)
+    };
+  });
+
+  const predictionCount = opinionRows.filter(item => item.hasPrediction).length;
+  els.expertOpinionCount.textContent = predictionCount + '/' + opinionRows.length + ' ý kiến';
+
+  if (opinionRows.length === 0) {
+    els.expertOpinions.innerHTML = '<p class="empty">Chưa có dữ liệu người dùng.</p>';
+    return;
+  }
+
+  els.expertOpinions.innerHTML = opinionRows.map(item => {
+    const predictionClass = item.hasPrediction ? 'expert-prediction' : 'expert-prediction empty-prediction';
+    return [
+      '<article class="expert-box">',
+      '<span class="expert-name">' + escapeHtml(item.name) + '</span>',
+      '<strong class="' + predictionClass + '">' + escapeHtml(item.prediction) + '</strong>',
+      '</article>'
+    ].join('');
+  }).join('');
 }
 
 async function handlePredictionClick(prediction) {
