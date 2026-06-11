@@ -875,3 +875,208 @@ footer {
     max-height: 520px;
   }
 }
+
+/* Layout polish: remove horizontal table drag, remove useless blank space, align panels cleanly. */
+.app-header,
+main,
+footer,
+.tabs {
+  width: min(1240px, calc(100% - 32px));
+}
+
+.user-picker-bar {
+  width: min(420px, 100%);
+  margin: 0 auto 14px;
+}
+
+.predict-dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.72fr) minmax(340px, 0.9fr);
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.dashboard-schedule-card,
+.dashboard-action-panel,
+.dashboard-expert-card {
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.dashboard-schedule-card {
+  min-width: 0;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
+.dashboard-action-panel {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  background: rgba(255,255,255,0.94);
+}
+
+.panel-block {
+  min-width: 0;
+}
+
+.panel-block + .panel-block {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.dashboard-info-card h2,
+.dashboard-prediction-card h2 {
+  margin-bottom: 14px;
+}
+
+.dashboard-prediction-card {
+  margin-top: 0;
+}
+
+.dashboard-prediction-card .hint {
+  margin-bottom: 10px;
+}
+
+.dashboard-prediction-card .prediction-options {
+  margin: 12px 0;
+  gap: 10px;
+}
+
+.dashboard-prediction-card .prediction-btn {
+  padding: 12px 20px;
+}
+
+.dashboard-expert-card {
+  margin-top: 0;
+}
+
+.info-grid {
+  gap: 10px;
+}
+
+.info-grid div {
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.info-grid strong {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.handicap-explanation {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.weekly-schedule-table-wrap {
+  width: 100%;
+  max-width: none;
+  max-height: 468px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+.weekly-schedule-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.weekly-schedule-table col.weekly-col-date { width: 12%; }
+.weekly-schedule-table col.weekly-col-time { width: 8%; }
+.weekly-schedule-table col.weekly-col-match { width: 34%; }
+.weekly-schedule-table col.weekly-col-handicap { width: 8%; }
+.weekly-schedule-table col.weekly-col-deadline { width: 24%; }
+.weekly-schedule-table col.weekly-col-action { width: 14%; }
+
+.weekly-schedule-table th,
+.weekly-schedule-table td {
+  padding: 10px 9px;
+  vertical-align: middle;
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+.weekly-schedule-table th {
+  white-space: normal;
+}
+
+.weekly-schedule-table td.merged-date-cell {
+  text-align: left;
+  vertical-align: middle;
+  padding-left: 12px;
+  white-space: normal;
+}
+
+.weekly-schedule-table td.time-cell,
+.weekly-schedule-table td.match-name-cell {
+  text-align: left;
+}
+
+.weekly-schedule-table td.time-cell {
+  white-space: nowrap;
+}
+
+.weekly-schedule-table .match-link-btn {
+  width: 100%;
+  white-space: normal;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.weekly-schedule-table td.handicap-cell,
+.weekly-schedule-table td.deadline-cell,
+.weekly-schedule-table td:last-child {
+  text-align: center;
+}
+
+.weekly-schedule-table td.deadline-cell {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.pick-match-btn {
+  padding: 8px 11px;
+  white-space: nowrap;
+}
+
+@media (max-width: 1120px) {
+  .predict-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-action-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .weekly-schedule-table-wrap {
+    max-height: 520px;
+  }
+}
+
+@media (max-width: 760px) {
+  .weekly-schedule-table th,
+  .weekly-schedule-table td {
+    padding: 9px 7px;
+    font-size: 12.5px;
+  }
+
+  .weekly-schedule-table col.weekly-col-date { width: 16%; }
+  .weekly-schedule-table col.weekly-col-time { width: 10%; }
+  .weekly-schedule-table col.weekly-col-match { width: 34%; }
+  .weekly-schedule-table col.weekly-col-handicap { width: 9%; }
+  .weekly-schedule-table col.weekly-col-deadline { width: 19%; }
+  .weekly-schedule-table col.weekly-col-action { width: 12%; }
+
+  .pick-match-btn {
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+}
