@@ -1,5 +1,7 @@
 // Apps Script Web App /exec URL.
 const API_URL = 'https://script.google.com/macros/s/AKfycbymJ_OflCYsIJdR9IEUS_iwEym2AfI7WNurbIt64YXZkJEKLJcXi3sAnEhCv-qBR8EN/exec';
+const APP_TIMEZONE = 'Asia/Ho_Chi_Minh';
+const WEEK_DAYS_AHEAD = 7;
 
 let state = {
   users: [],
@@ -11,9 +13,10 @@ let state = {
   lockRule: { minutesBeforeMatch: 15 }
 };
 
+let selectedMatchRowIndex = null;
+
 const els = {
   userSelect: document.getElementById('userSelect'),
-  matchSelect: document.getElementById('matchSelect'),
   selectedUserName: document.getElementById('selectedUserName'),
   selectedContribution: document.getElementById('selectedContribution'),
   selectedMatchName: document.getElementById('selectedMatchName'),
@@ -21,10 +24,10 @@ const els = {
   selectedHandicap: document.getElementById('selectedHandicap'),
   currentPrediction: document.getElementById('currentPrediction'),
   predictionLockStatus: document.getElementById('predictionLockStatus'),
-  statusBox: document.getElementById('statusBox'),
-  todayTomorrowTable: document.getElementById('todayTomorrowTable'),
-  todayTomorrowCount: document.getElementById('todayTomorrowCount'),
   handicapExplanation: document.getElementById('handicapExplanation'),
+  statusBox: document.getElementById('statusBox'),
+  weeklyScheduleTable: document.getElementById('weeklyScheduleTable'),
+  weeklyScheduleCount: document.getElementById('weeklyScheduleCount'),
   scoreTable: document.getElementById('scoreTable'),
   upcomingTable: document.getElementById('upcomingTable'),
   rankingTable: document.getElementById('rankingTable'),
@@ -91,22 +94,27 @@ async function postPrediction(payload) {
   });
 }
 
-async function loadData() {
-  setStatus('Đang tải dữ liệu...', 'loading');
+async function loadData(options = {}) {
+  const silent = Boolean(options.silent);
+  if (!silent) setStatus('Đang tải dữ liệu...', 'loading');
 
   try {
     const data = await jsonpGet();
     if (!data.success) throw new Error(data.message || 'Không lấy được dữ liệu.');
 
     state = data;
+
+    if (selectedMatchRowIndex && !state.matches.some(m => Number(m.rowIndex) === Number(selectedMatchRowIndex))) {
+      selectedMatchRowIndex = null;
+    }
+
     renderUserSelect();
-    renderMatchSelect();
-    renderTodayTomorrowMatches();
+    renderWeeklyScheduleTable();
     renderTrackingTables();
-    updateSelectedInfo();
+    updateSelectedInfo({ showStatusMessage: !silent });
 
     els.lastUpdated.textContent = 'Cập nhật lần cuối: ' + new Date().toLocaleString('vi-VN');
-    setStatus('Đã tải dữ liệu.', 'success');
+    if (!silent) setStatus('Đã tải dữ liệu.', 'success');
     updatePredictionAvailability(false);
   } catch (err) {
     setStatus(err.message, 'error');
@@ -129,23 +137,95 @@ function renderUserSelect() {
   }
 }
 
-function renderMatchSelect() {
-  const current = els.matchSelect.value;
-  els.matchSelect.innerHTML = '<option value="">-- Chọn trận đấu --</option>';
+function renderWeeklyScheduleTable() {
+  const matches = getMatchesInNextWeek();
+  els.weeklyScheduleCount.textContent = matches.length + ' trận';
 
-  state.matches.forEach(match => {
-    const option = document.createElement('option');
-    option.value = match.matchName;
-    option.textContent = [match.date, match.time, match.matchName, isMatchLockedNow(match) ? 'Đã khóa' : 'Còn mở'].filter(Boolean).join(' · ');
-    els.matchSelect.appendChild(option);
+  if (!matches.length) {
+    els.weeklyScheduleTable.innerHTML = '<p class="empty">Không có trận nào trong một tuần tới.</p>';
+    return;
+  }
+
+  const groups = groupMatchesByDate(matches);
+  let rows = '';
+
+  groups.forEach(group => {
+    group.matches.forEach((match, index) => {
+      const isSelected = Number(match.rowIndex) === Number(selectedMatchRowIndex);
+      const statusText = getCompactLockStatusText(match);
+      rows += '<tr class="weekly-match-row' + (isSelected ? ' selected' : '') + '" data-row-index="' + escapeHtml(match.rowIndex) + '">';
+      if (index === 0) {
+        rows += '<td class="merged-date-cell" rowspan="' + group.matches.length + '">' + escapeHtml(group.date) + '</td>';
+      }
+      rows += '<td class="time-cell">' + escapeHtml(match.time || '-') + '</td>';
+      rows += '<td><button type="button" class="match-link-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">' + escapeHtml(match.matchName || '-') + '</button></td>';
+      rows += '<td class="handicap-cell">' + escapeHtml(match.handicap || '-') + '</td>';
+      rows += '<td>' + escapeHtml(statusText) + '</td>';
+      rows += '<td><button type="button" class="pick-match-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">' + (match.isPredictionLocked ? 'Xem' : 'Dự đoán') + '</button></td>';
+      rows += '</tr>';
+    });
   });
 
-  if (current && state.matches.some(m => m.matchName === current)) {
-    els.matchSelect.value = current;
+  els.weeklyScheduleTable.innerHTML = [
+    '<table class="weekly-schedule-table">',
+    '<thead><tr>',
+    '<th>Ngày</th>',
+    '<th>Giờ</th>',
+    '<th>Tên trận đấu</th>',
+    '<th>Gia vị</th>',
+    '<th>Trạng thái dự đoán</th>',
+    '<th>Chọn</th>',
+    '</tr></thead>',
+    '<tbody>', rows, '</tbody>',
+    '</table>'
+  ].join('');
+}
+
+function getMatchesInNextWeek() {
+  const today = getTodayVNParts();
+
+  return state.matches
+    .map(match => ({ match, dateParts: parseDateDisplay(match.date), timeParts: parseTimeDisplay(match.time) }))
+    .filter(item => {
+      if (!item.dateParts) return false;
+      const diff = daysBetween(today, item.dateParts);
+      return diff >= 0 && diff <= WEEK_DAYS_AHEAD;
+    })
+    .sort((a, b) => {
+      const dateDiff = datePartsToTime(a.dateParts) - datePartsToTime(b.dateParts);
+      if (dateDiff !== 0) return dateDiff;
+      const aMinutes = itemTimeToMinutes(a.timeParts);
+      const bMinutes = itemTimeToMinutes(b.timeParts);
+      if (aMinutes !== bMinutes) return aMinutes - bMinutes;
+      return Number(a.match.rowIndex) - Number(b.match.rowIndex);
+    })
+    .map(item => item.match);
+}
+
+function groupMatchesByDate(matches) {
+  const map = new Map();
+
+  matches.forEach(match => {
+    const key = match.date || '-';
+    if (!map.has(key)) map.set(key, { date: key, matches: [] });
+    map.get(key).matches.push(match);
+  });
+
+  return Array.from(map.values());
+}
+
+function selectMatch(rowIndex) {
+  selectedMatchRowIndex = Number(rowIndex);
+  renderWeeklyScheduleTable();
+  updateSelectedInfo({ showStatusMessage: true });
+  const match = getSelectedMatch();
+  if (match) {
+    setStatus('Đã chọn trận: ' + match.matchName + '.', match.isPredictionLocked ? 'warning' : 'success');
   }
 }
 
-function updateSelectedInfo() {
+function updateSelectedInfo(options = {}) {
+  const showStatusMessage = options.showStatusMessage !== false;
   const user = getSelectedUser();
   const match = getSelectedMatch();
 
@@ -159,150 +239,26 @@ function updateSelectedInfo() {
   els.handicapExplanation.textContent = getHandicapExplanation(match);
 
   renderExpertOpinions();
-  updatePredictionAvailability(true);
+  updatePredictionAvailability(showStatusMessage);
 }
 
 function getLockStatusText(match) {
   if (!match) return '-';
-  if (isMatchLockedNow(match)) return 'Đã khóa từ ' + (match.lockAt || '-');
+  if (match.isPredictionLocked) return 'Đã khóa từ ' + (match.lockAt || '-');
   return 'Còn mở. Khóa lúc ' + (match.lockAt || '-');
 }
 
-function isMatchLockedNow(match) {
-  if (!match) return false;
-  if (match.lockAtIso) {
-    const lockDate = new Date(match.lockAtIso);
-    if (!Number.isNaN(lockDate.getTime())) {
-      return Date.now() >= lockDate.getTime();
-    }
-  }
-  return Boolean(match.isPredictionLocked);
-}
-
-function getMatchStatusText(match) {
+function getCompactLockStatusText(match) {
   if (!match) return '-';
-  return isMatchLockedNow(match) ? 'Đã khóa' : 'Còn mở đến ' + (match.lockAt || '-');
-}
-
-function getDateKeyFromDisplay(dateText) {
-  const m = String(dateText || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (!m) return '';
-  return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
-}
-
-function getDateKeyInVietnam(date) {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }).formatToParts(date).reduce((obj, item) => {
-    obj[item.type] = item.value;
-    return obj;
-  }, {});
-  return parts.year + '-' + parts.month + '-' + parts.day;
-}
-
-function getTodayAndTomorrowKeys() {
-  const now = new Date();
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  return new Set([getDateKeyInVietnam(now), getDateKeyInVietnam(tomorrow)]);
-}
-
-function compareMatchDateTime(a, b) {
-  const dateCompare = getDateKeyFromDisplay(a.date).localeCompare(getDateKeyFromDisplay(b.date));
-  if (dateCompare !== 0) return dateCompare;
-  return String(a.time || '').localeCompare(String(b.time || ''));
-}
-
-function renderTodayTomorrowMatches() {
-  if (!els.todayTomorrowTable || !els.todayTomorrowCount) return;
-
-  const keys = getTodayAndTomorrowKeys();
-  const rows = state.matches
-    .filter(match => keys.has(getDateKeyFromDisplay(match.date)))
-    .slice()
-    .sort(compareMatchDateTime);
-
-  els.todayTomorrowCount.textContent = rows.length + ' trận';
-  renderTable(els.todayTomorrowTable, ['Tên trận đấu', 'Ngày', 'Giờ', 'Gia vị', 'Trạng thái dự đoán'], rows.map(match => [
-    match.matchName,
-    match.date,
-    match.time,
-    match.handicap || '-',
-    getMatchStatusText(match)
-  ]), 'Không có trận đấu nào trong hôm nay và ngày mai.');
-}
-
-function splitTeams(matchName) {
-  const parts = String(matchName || '').split(/\s+[-–—]\s+/).map(part => part.trim()).filter(Boolean);
-  if (parts.length >= 2) return { teamA: parts[0], teamB: parts.slice(1).join(' - ') };
-  return { teamA: String(matchName || '').trim() || 'Đội A', teamB: 'Đội B' };
-}
-
-function parseHandicapValue(value) {
-  const text = String(value || '').replace(',', '.').trim();
-  const n = Number(text);
-  return Number.isFinite(n) ? n : null;
-}
-
-function formatGoalCount(n) {
-  return n + ' bàn';
-}
-
-function getHandicapExplanation(match) {
-  if (!match) return 'Chọn trận đấu để xem cách tính gia vị.';
-
-  const handicap = parseHandicapValue(match.handicap);
-  if (handicap === null) return 'Trận này chưa có dữ liệu gia vị/chấp.';
-
-  const { teamA, teamB } = splitTeams(match.matchName);
-  const displayHandicap = match.handicap || String(handicap).replace('.', ',');
-
-  if (handicap < 0) {
-    return 'Gia vị đang là số âm (' + displayHandicap + '). Bản giải thích tự động hiện ưu tiên trường hợp đội A chấp đội B; vui lòng kiểm tra lại dữ liệu gia vị của trận này.';
-  }
-
-  if (Number.isInteger(handicap)) {
-    if (handicap === 0) {
-      return 'Gia vị ' + displayHandicap + ': Nếu ' + teamA + ' thắng ' + teamB + ' thì kết quả là Thắng. Nếu hai đội hòa thì kết quả là Hòa. Nếu ' + teamA + ' thua ' + teamB + ' thì kết quả là Thua.';
-    }
-
-    const winLine = 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + formatGoalCount(handicap + 1) + ' trở lên thì kết quả là Thắng.';
-    const drawLine = 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt đúng ' + formatGoalCount(handicap) + ' thì kết quả là Hòa.';
-    const loseLine = handicap - 1 <= 0
-      ? 'Nếu ' + teamA + ' hòa hoặc thua ' + teamB + ' thì kết quả là Thua.'
-      : 'Nếu ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + formatGoalCount(handicap - 1) + ', hoặc hòa/thua trước ' + teamB + ', thì kết quả là Thua.';
-
-    return 'Gia vị ' + displayHandicap + ': ' + winLine + ' ' + drawLine + ' ' + loseLine;
-  }
-
-  const upper = Math.ceil(handicap);
-  const lower = Math.floor(handicap);
-  const winLine = 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + formatGoalCount(upper) + ' trở lên thì kết quả là Thắng.';
-  const loseLine = lower <= 0
-    ? 'Nếu ' + teamA + ' hòa hoặc thua ' + teamB + ' thì kết quả là Thua.'
-    : 'Nếu ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + formatGoalCount(lower) + ', hoặc hòa/thua trước ' + teamB + ', thì kết quả là Thua.';
-
-  return 'Gia vị ' + displayHandicap + ': ' + winLine + ' ' + loseLine;
-}
-
-function refreshRealtimeViews() {
-  const selectedMatch = els.matchSelect.value;
-  renderMatchSelect();
-  if (selectedMatch && state.matches.some(m => m.matchName === selectedMatch)) {
-    els.matchSelect.value = selectedMatch;
-  }
-  renderTodayTomorrowMatches();
-  renderTrackingTables();
-  updateSelectedInfo();
+  if (match.isPredictionLocked) return 'Đã khóa từ ' + (match.lockAt || '-');
+  return 'Còn mở đến ' + (match.lockAt || '-');
 }
 
 function updatePredictionAvailability(showStatusMessage = true) {
   const user = getSelectedUser();
   const match = getSelectedMatch();
   const buttons = document.querySelectorAll('.prediction-btn');
-  const disabled = !user || !match || isMatchLockedNow(match);
+  const disabled = !user || !match || Boolean(match.isPredictionLocked);
 
   buttons.forEach(btn => {
     btn.disabled = disabled;
@@ -310,12 +266,22 @@ function updatePredictionAvailability(showStatusMessage = true) {
 
   if (!showStatusMessage) return;
 
-  if (!user || !match) {
-    setStatus('Vui lòng chọn tên và trận đấu trước khi dự đoán.', 'warning');
+  if (!user && !match) {
+    setStatus('Vui lòng chọn tên người dùng và chọn trận ở bảng lịch phía trên.', 'warning');
     return;
   }
 
-  if (isMatchLockedNow(match)) {
+  if (!user) {
+    setStatus('Vui lòng chọn tên người dùng trước khi dự đoán.', 'warning');
+    return;
+  }
+
+  if (!match) {
+    setStatus('Vui lòng chọn trận đấu ở bảng lịch phía trên.', 'warning');
+    return;
+  }
+
+  if (match.isPredictionLocked) {
     setStatus('Trận này đã khóa dự đoán từ ' + (match.lockAt || '-') + '.', 'error');
     return;
   }
@@ -328,7 +294,8 @@ function getSelectedUser() {
 }
 
 function getSelectedMatch() {
-  return state.matches.find(m => m.matchName === els.matchSelect.value) || null;
+  if (!selectedMatchRowIndex) return null;
+  return state.matches.find(m => Number(m.rowIndex) === Number(selectedMatchRowIndex)) || null;
 }
 
 function getCurrentPrediction() {
@@ -382,16 +349,82 @@ function renderExpertOpinions() {
   }).join('');
 }
 
+function getHandicapExplanation(match) {
+  if (!match) return 'Chọn trận đấu để xem cách tính gia vị.';
+
+  const handicap = parseHandicap(match.handicap);
+  if (handicap === null) return 'Trận này chưa có gia vị/chấp nên chưa có phần giải thích.';
+
+  const teams = splitTeams(match.matchName);
+  if (!teams) return 'Không tách được tên hai đội từ dữ liệu trận đấu.';
+
+  const teamA = teams[0];
+  const teamB = teams[1];
+  const absHandicap = Math.abs(handicap);
+
+  if (handicap < 0) {
+    return 'Gia vị âm chưa được chuẩn hóa trong phần giải thích tự động. Vui lòng kiểm tra lại cách nhập gia vị trên Sheet.';
+  }
+
+  if (isNearlyInteger(absHandicap)) {
+    const h = Math.round(absHandicap);
+    if (h === 0) {
+      return 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ 1 bàn trở lên thì kết quả là Thắng. Nếu ' + teamA + ' hòa ' + teamB + ' thì kết quả là Hòa. Nếu ' + teamA + ' thua ' + teamB + ' thì kết quả là Thua.';
+    }
+
+    const winGap = h + 1;
+    const drawGap = h;
+    const loseMaxGap = h - 1;
+    let loseSentence;
+    if (loseMaxGap <= 0) {
+      loseSentence = 'Nếu ' + teamA + ' hòa hoặc thua ' + teamB + ' thì kết quả là Thua.';
+    } else {
+      loseSentence = 'Nếu ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + loseMaxGap + ' bàn, hoặc hòa/thua trước ' + teamB + ', thì kết quả là Thua.';
+    }
+
+    return 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + winGap + ' bàn trở lên thì kết quả là Thắng. Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt đúng ' + drawGap + ' bàn thì kết quả là Hòa. ' + loseSentence;
+  }
+
+  const winGap = Math.ceil(absHandicap);
+  const loseMaxGap = Math.floor(absHandicap);
+  let loseSentence;
+  if (loseMaxGap <= 0) {
+    loseSentence = 'Nếu ' + teamA + ' hòa hoặc thua ' + teamB + ' thì kết quả là Thua.';
+  } else {
+    loseSentence = 'Nếu ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + loseMaxGap + ' bàn, hoặc hòa/thua trước ' + teamB + ', thì kết quả là Thua.';
+  }
+
+  return 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + winGap + ' bàn trở lên thì kết quả là Thắng. ' + loseSentence;
+}
+
+function parseHandicap(value) {
+  const text = String(value ?? '').trim();
+  if (!text || text === '-') return null;
+  const normalized = text.replace(/\s/g, '').replace(',', '.');
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : null;
+}
+
+function splitTeams(matchName) {
+  const parts = String(matchName || '').split(/\s+-\s+/);
+  if (parts.length < 2) return null;
+  return [parts[0].trim(), parts.slice(1).join(' - ').trim()];
+}
+
+function isNearlyInteger(value) {
+  return Math.abs(value - Math.round(value)) < 0.000001;
+}
+
 async function handlePredictionClick(prediction) {
   const user = getSelectedUser();
   const match = getSelectedMatch();
 
   if (!user || !match) {
-    setStatus('Vui lòng chọn tên và trận đấu trước khi dự đoán.', 'error');
+    setStatus('Vui lòng chọn tên người dùng và chọn trận đấu trước khi dự đoán.', 'error');
     return;
   }
 
-  if (isMatchLockedNow(match)) {
+  if (match.isPredictionLocked) {
     setStatus('Trận này đã khóa dự đoán từ ' + (match.lockAt || '-') + '.', 'error');
     return;
   }
@@ -406,7 +439,7 @@ async function handlePredictionClick(prediction) {
     });
 
     await sleep(1200);
-    await loadData();
+    await loadData({ silent: true });
 
     const savedValue = getCurrentPrediction();
     if (savedValue === prediction) {
@@ -436,7 +469,7 @@ function renderTrackingTables() {
     m.time,
     m.matchName,
     m.handicap || '-',
-    getMatchStatusText(m)
+    m.isPredictionLocked ? 'Đã khóa' : 'Còn mở đến ' + (m.lockAt || '-')
   ]), 'Không còn trận sắp tới.');
 
   renderTable(els.rankingTable, ['Tên người dùng', 'Số nem chua đã đóng góp'], state.rankings.map(u => [
@@ -454,6 +487,47 @@ function renderTable(container, headers, rows, emptyText) {
   const thead = '<thead><tr>' + headers.map(h => '<th>' + escapeHtml(h) + '</th>').join('') + '</tr></thead>';
   const tbody = '<tbody>' + rows.map(row => '<tr>' + row.map(cell => '<td>' + escapeHtml(cell) + '</td>').join('') + '</tr>').join('') + '</tbody>';
   container.innerHTML = '<table>' + thead + tbody + '</table>';
+}
+
+function parseDateDisplay(dateText) {
+  const text = String(dateText || '').trim();
+  const m = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return null;
+  return { day: Number(m[1]), month: Number(m[2]), year: Number(m[3]) };
+}
+
+function parseTimeDisplay(timeText) {
+  const text = String(timeText || '').trim();
+  const m = text.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return { hour: Number(m[1]), minute: Number(m[2]) };
+}
+
+function getTodayVNParts() {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const parts = formatter.formatToParts(new Date()).reduce((obj, part) => {
+    if (part.type !== 'literal') obj[part.type] = Number(part.value);
+    return obj;
+  }, {});
+  return { year: parts.year, month: parts.month, day: parts.day };
+}
+
+function datePartsToTime(parts) {
+  return Date.UTC(parts.year, parts.month - 1, parts.day);
+}
+
+function daysBetween(startParts, targetParts) {
+  return Math.round((datePartsToTime(targetParts) - datePartsToTime(startParts)) / 86400000);
+}
+
+function itemTimeToMinutes(timeParts) {
+  if (!timeParts) return 0;
+  return timeParts.hour * 60 + timeParts.minute;
 }
 
 function setStatus(message, type = '') {
@@ -486,10 +560,14 @@ function setupTabs() {
 }
 
 function setupEvents() {
-  els.userSelect.addEventListener('change', updateSelectedInfo);
-  els.matchSelect.addEventListener('change', updateSelectedInfo);
-  els.refreshBtn.addEventListener('click', loadData);
-  window.setInterval(refreshRealtimeViews, 30000);
+  els.userSelect.addEventListener('change', () => updateSelectedInfo({ showStatusMessage: true }));
+  els.refreshBtn.addEventListener('click', () => loadData());
+
+  els.weeklyScheduleTable.addEventListener('click', event => {
+    const target = event.target.closest('[data-row-index]');
+    if (!target) return;
+    selectMatch(target.dataset.rowIndex);
+  });
 
   document.querySelectorAll('.prediction-btn').forEach(btn => {
     btn.addEventListener('click', () => handlePredictionClick(btn.dataset.prediction));
@@ -500,4 +578,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabs();
   setupEvents();
   loadData();
+
+  window.setInterval(() => {
+    loadData({ silent: true });
+  }, 60000);
 });

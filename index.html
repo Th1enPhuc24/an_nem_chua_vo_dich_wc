@@ -23,13 +23,13 @@
 
   <main>
     <section id="predictPage" class="page active">
-      <section class="card today-tomorrow-card">
+      <section class="card weekly-schedule-card">
         <div class="section-head">
-          <h2>Lịch thi đấu hôm nay & ngày mai</h2>
-          <span id="todayTomorrowCount" class="pill">0 trận</span>
+          <h2>Lịch thi đấu trong một tuần tới</h2>
+          <span id="weeklyScheduleCount" class="pill">0 trận</span>
         </div>
-        <p class="hint">Chỉ hiển thị các trận trong ngày hôm nay và ngày mai theo thời gian thực.</p>
-        <div id="todayTomorrowTable" class="table-wrap today-tomorrow-table-wrap"></div>
+        <p class="hint">Click vào tên trận đấu hoặc bấm nút <strong>Dự đoán</strong> để chọn trận. Bảng chỉ hiển thị các trận từ hôm nay đến 7 ngày tới.</p>
+        <div id="weeklyScheduleTable" class="table-wrap weekly-schedule-table-wrap"></div>
       </section>
 
       <div class="grid two-cols selection-grid">
@@ -40,10 +40,10 @@
             <option value="">Đang tải danh sách...</option>
           </select>
 
-          <label for="matchSelect">Trận đấu</label>
-          <select id="matchSelect">
-            <option value="">Đang tải trận đấu...</option>
-          </select>
+          <div class="selection-note">
+            <strong>Chọn trận đấu ở bảng lịch phía trên.</strong>
+            <span>Danh sách sổ xuống đã được bỏ để dễ nhìn hơn. Sau khi chọn trận, thông tin sẽ tự cập nhật ở bảng bên phải.</span>
+          </div>
         </section>
 
         <section class="card highlight-card">
