@@ -433,3 +433,973 @@ footer {
     padding: 12px 18px;
   }
 }
+
+/* Weekly schedule / match-picker update */
+.weekly-schedule-card {
+  margin-bottom: 18px;
+}
+
+.weekly-schedule-table-wrap {
+  max-height: 480px;
+  overflow: auto;
+}
+
+.weekly-schedule-table {
+  table-layout: fixed;
+  min-width: 980px;
+}
+
+.weekly-schedule-table th,
+.weekly-schedule-table td {
+  vertical-align: middle;
+}
+
+.weekly-schedule-table th:nth-child(1),
+.weekly-schedule-table td:nth-child(1) {
+  width: 130px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.weekly-schedule-table th:nth-child(2),
+.weekly-schedule-table td:nth-child(2) {
+  width: 90px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.weekly-schedule-table th:nth-child(3),
+.weekly-schedule-table td:nth-child(3) {
+  width: auto;
+}
+
+.weekly-schedule-table th:nth-child(4),
+.weekly-schedule-table td:nth-child(4) {
+  width: 90px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(5),
+.weekly-schedule-table td:nth-child(5) {
+  width: 180px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(6),
+.weekly-schedule-table td:nth-child(6) {
+  width: 110px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-match-row {
+  cursor: pointer;
+}
+
+.weekly-match-row:hover td:not(.merged-date-cell) {
+  background: #fff7ed;
+}
+
+.weekly-match-row.selected td:not(.merged-date-cell) {
+  background: #ffedd5;
+}
+
+.weekly-match-row.selected .merged-date-cell {
+  background: #dcfce7;
+}
+
+.merged-date-cell {
+  background: #ecfdf5;
+  color: #14532d;
+  font-weight: 900;
+  text-align: center;
+  vertical-align: middle;
+  border-right: 1px solid var(--line);
+}
+
+.time-cell,
+.handicap-cell,
+.deadline-cell {
+  font-weight: 800;
+}
+
+.match-name-cell {
+  overflow-wrap: anywhere;
+}
+
+.match-link-btn {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 900;
+  text-align: left;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.match-link-btn:hover {
+  color: var(--accent-dark);
+  text-decoration: underline;
+}
+
+.pick-match-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.pick-match-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.selection-note {
+  margin-top: 22px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff7ed;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+}
+
+.selection-note strong {
+  display: block;
+  color: var(--accent-dark);
+  margin-bottom: 6px;
+}
+
+.selection-note span {
+  display: block;
+  line-height: 1.55;
+}
+
+.handicap-explanation {
+  margin: 0;
+  color: var(--text);
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.handicap-explanation-row {
+  background: #fffaf5 !important;
+}
+
+@media (max-width: 760px) {
+  .weekly-schedule-table-wrap {
+    max-height: 520px;
+  }
+
+  .weekly-schedule-table {
+    min-width: 900px;
+  }
+
+  .weekly-schedule-table th:nth-child(5),
+  .weekly-schedule-table td:nth-child(5) {
+    width: 170px;
+  }
+}
+
+
+/* Final cleanup: compact open-match table, left-aligned rows, no dropdown note */
+.weekly-schedule-table-wrap {
+  width: 80%;
+  max-width: 940px;
+  max-height: 540px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: auto;
+}
+
+.weekly-schedule-table {
+  width: 100%;
+  min-width: 820px;
+  table-layout: fixed;
+}
+
+.weekly-schedule-table th,
+.weekly-schedule-table td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  vertical-align: middle;
+}
+
+.weekly-schedule-table th:nth-child(1),
+.weekly-schedule-table td:nth-child(1) {
+  width: 116px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(2),
+.weekly-schedule-table td:nth-child(2) {
+  width: 76px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(3),
+.weekly-schedule-table td:nth-child(3) {
+  width: 320px;
+  text-align: left;
+}
+
+.weekly-schedule-table th:nth-child(4),
+.weekly-schedule-table td:nth-child(4) {
+  width: 72px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(5),
+.weekly-schedule-table td:nth-child(5) {
+  width: 162px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(6),
+.weekly-schedule-table td:nth-child(6) {
+  width: 92px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table .date-cell {
+  background: #ecfdf5;
+  color: #14532d;
+  font-weight: 900;
+  border-right: 1px solid var(--line);
+}
+
+.weekly-schedule-table .match-name-cell {
+  text-align: left;
+}
+
+.weekly-schedule-table .match-link-btn {
+  text-align: left;
+  width: 100%;
+}
+
+.weekly-match-row:hover td,
+.weekly-match-row.selected td {
+  background: #fff7ed;
+}
+
+.weekly-match-row.selected td {
+  background: #ffedd5;
+}
+
+@media (max-width: 960px) {
+  .weekly-schedule-table-wrap {
+    width: 100%;
+    max-width: none;
+    max-height: 540px;
+  }
+}
+
+/* Restore merged-date layout only: keep grouped dates while preserving column alignment. */
+.weekly-schedule-table col.weekly-col-date { width: 116px; }
+.weekly-schedule-table col.weekly-col-time { width: 76px; }
+.weekly-schedule-table col.weekly-col-match { width: 320px; }
+.weekly-schedule-table col.weekly-col-handicap { width: 72px; }
+.weekly-schedule-table col.weekly-col-deadline { width: 162px; }
+.weekly-schedule-table col.weekly-col-action { width: 92px; }
+
+.weekly-schedule-table td.merged-date-cell {
+  background: #ecfdf5;
+  color: #14532d;
+  font-weight: 900;
+  text-align: left;
+  vertical-align: middle;
+  border-right: 1px solid var(--line);
+}
+
+.weekly-schedule-table td.time-cell {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table td.match-name-cell {
+  text-align: left;
+}
+
+.weekly-schedule-table td.handicap-cell,
+.weekly-schedule-table td.deadline-cell,
+.weekly-schedule-table td:last-child {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-match-row:hover td:not(.merged-date-cell) {
+  background: #fff7ed;
+}
+
+.weekly-match-row.selected td:not(.merged-date-cell) {
+  background: #ffedd5;
+}
+
+.weekly-match-row.selected td.merged-date-cell {
+  background: #dcfce7;
+}
+
+/* Requested dashboard layout: user selector on top, schedule left, selected info + prediction right, expert opinions below. */
+.user-picker-bar {
+  width: min(430px, 100%);
+  margin: -4px auto 18px;
+  padding: 0;
+}
+
+.user-picker-bar label {
+  display: block;
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.predict-dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(330px, 0.95fr);
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 8px;
+}
+
+.dashboard-schedule-card,
+.dashboard-info-card,
+.dashboard-prediction-card,
+.dashboard-expert-card {
+  border-radius: 0;
+}
+
+.dashboard-schedule-card {
+  min-width: 0;
+  min-height: 420px;
+}
+
+.dashboard-side-stack {
+  display: grid;
+  grid-template-rows: minmax(0, 1.1fr) auto;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dashboard-info-card,
+.dashboard-prediction-card {
+  min-width: 0;
+}
+
+.dashboard-prediction-card {
+  margin-top: 0;
+}
+
+.dashboard-prediction-card .prediction-options {
+  margin: 14px 0;
+}
+
+.dashboard-expert-card {
+  margin-top: 0;
+  min-height: 300px;
+}
+
+.dashboard-expert-card .expert-opinions-grid {
+  max-height: 250px;
+}
+
+.weekly-schedule-card .hint {
+  display: none;
+}
+
+/* Fit schedule table inside the left block, keep merged-date grouping. */
+.weekly-schedule-table-wrap {
+  width: 100%;
+  max-width: none;
+  max-height: 360px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.weekly-schedule-table {
+  width: 100%;
+  min-width: 760px;
+  table-layout: fixed;
+}
+
+.weekly-schedule-table col.weekly-col-date { width: 108px; }
+.weekly-schedule-table col.weekly-col-time { width: 70px; }
+.weekly-schedule-table col.weekly-col-match { width: 270px; }
+.weekly-schedule-table col.weekly-col-handicap { width: 66px; }
+.weekly-schedule-table col.weekly-col-deadline { width: 142px; }
+.weekly-schedule-table col.weekly-col-action { width: 86px; }
+
+.weekly-schedule-table th,
+.weekly-schedule-table td {
+  padding: 10px 10px;
+}
+
+.weekly-schedule-table td.merged-date-cell {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.weekly-schedule-table td.time-cell,
+.weekly-schedule-table td.match-name-cell {
+  text-align: left;
+}
+
+.weekly-schedule-table td.handicap-cell,
+.weekly-schedule-table td.deadline-cell,
+.weekly-schedule-table td:last-child {
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .predict-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-side-stack {
+    grid-template-rows: auto auto;
+  }
+
+  .weekly-schedule-table-wrap {
+    max-height: 520px;
+  }
+}
+
+/* Layout polish: remove horizontal table drag, remove useless blank space, align panels cleanly. */
+.app-header,
+main,
+footer,
+.tabs {
+  width: min(1240px, calc(100% - 32px));
+}
+
+.user-picker-bar {
+  width: min(420px, 100%);
+  margin: 0 auto 14px;
+}
+
+.predict-dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.72fr) minmax(340px, 0.9fr);
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.dashboard-schedule-card,
+.dashboard-action-panel,
+.dashboard-expert-card {
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.dashboard-schedule-card {
+  min-width: 0;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
+.dashboard-action-panel {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  background: rgba(255,255,255,0.94);
+}
+
+.panel-block {
+  min-width: 0;
+}
+
+.panel-block + .panel-block {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.dashboard-info-card h2,
+.dashboard-prediction-card h2 {
+  margin-bottom: 14px;
+}
+
+.dashboard-prediction-card {
+  margin-top: 0;
+}
+
+.dashboard-prediction-card .hint {
+  margin-bottom: 10px;
+}
+
+.dashboard-prediction-card .prediction-options {
+  margin: 12px 0;
+  gap: 10px;
+}
+
+.dashboard-prediction-card .prediction-btn {
+  padding: 12px 20px;
+}
+
+.dashboard-expert-card {
+  margin-top: 0;
+}
+
+.info-grid {
+  gap: 10px;
+}
+
+.info-grid div {
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.info-grid strong {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.handicap-explanation {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.weekly-schedule-table-wrap {
+  width: 100%;
+  max-width: none;
+  max-height: 468px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+.weekly-schedule-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.weekly-schedule-table col.weekly-col-date { width: 12%; }
+.weekly-schedule-table col.weekly-col-time { width: 8%; }
+.weekly-schedule-table col.weekly-col-match { width: 34%; }
+.weekly-schedule-table col.weekly-col-handicap { width: 8%; }
+.weekly-schedule-table col.weekly-col-deadline { width: 24%; }
+.weekly-schedule-table col.weekly-col-action { width: 14%; }
+
+.weekly-schedule-table th,
+.weekly-schedule-table td {
+  padding: 10px 9px;
+  vertical-align: middle;
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+.weekly-schedule-table th {
+  white-space: normal;
+}
+
+.weekly-schedule-table td.merged-date-cell {
+  text-align: left;
+  vertical-align: middle;
+  padding-left: 12px;
+  white-space: normal;
+}
+
+.weekly-schedule-table td.time-cell,
+.weekly-schedule-table td.match-name-cell {
+  text-align: left;
+}
+
+.weekly-schedule-table td.time-cell {
+  white-space: nowrap;
+}
+
+.weekly-schedule-table .match-link-btn {
+  width: 100%;
+  white-space: normal;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.weekly-schedule-table td.handicap-cell,
+.weekly-schedule-table td.deadline-cell,
+.weekly-schedule-table td:last-child {
+  text-align: center;
+}
+
+.weekly-schedule-table td.deadline-cell {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.pick-match-btn {
+  padding: 8px 11px;
+  white-space: nowrap;
+}
+
+@media (max-width: 1120px) {
+  .predict-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-action-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .weekly-schedule-table-wrap {
+    max-height: 520px;
+  }
+}
+
+@media (max-width: 760px) {
+  .weekly-schedule-table th,
+  .weekly-schedule-table td {
+    padding: 9px 7px;
+    font-size: 12.5px;
+  }
+
+  .weekly-schedule-table col.weekly-col-date { width: 16%; }
+  .weekly-schedule-table col.weekly-col-time { width: 10%; }
+  .weekly-schedule-table col.weekly-col-match { width: 34%; }
+  .weekly-schedule-table col.weekly-col-handicap { width: 9%; }
+  .weekly-schedule-table col.weekly-col-deadline { width: 19%; }
+  .weekly-schedule-table col.weekly-col-action { width: 12%; }
+
+  .pick-match-btn {
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+}
+
+/* Final prediction dashboard layout: schedule full width, selected info + expert opinions below. */
+.app-header,
+main,
+footer,
+.tabs {
+  width: min(1360px, calc(100% - 32px));
+}
+
+.user-picker-bar {
+  width: min(420px, 100%);
+  margin: 0 auto 16px;
+}
+
+.dashboard-schedule-card {
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 20px;
+  border-radius: 22px;
+}
+
+.predict-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.15fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-top: 18px;
+}
+
+.predict-detail-layout > .card {
+  min-width: 0;
+  border-radius: 22px;
+  padding: 20px;
+}
+
+.dashboard-info-card,
+.dashboard-expert-card {
+  margin: 0;
+}
+
+.dashboard-info-card .info-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-info-card .info-grid div {
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.dashboard-expert-card .expert-opinions-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-height: 300px;
+}
+
+.weekly-schedule-table-wrap {
+  width: 100%;
+  max-width: none;
+  max-height: 520px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+.weekly-schedule-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.weekly-schedule-table col.weekly-col-date { width: 8%; }
+.weekly-schedule-table col.weekly-col-time { width: 6%; }
+.weekly-schedule-table col.weekly-col-match { width: 19%; }
+.weekly-schedule-table col.weekly-col-handicap { width: 6%; }
+.weekly-schedule-table col.weekly-col-deadline { width: 12%; }
+.weekly-schedule-table col.weekly-col-action { width: 9%; }
+.weekly-schedule-table col.weekly-col-explain { width: 40%; }
+
+.weekly-schedule-table th,
+.weekly-schedule-table td {
+  padding: 10px 9px;
+  vertical-align: middle;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.weekly-schedule-table th {
+  white-space: normal;
+}
+
+.weekly-schedule-table td.merged-date-cell {
+  text-align: left;
+  vertical-align: middle;
+  padding-left: 12px;
+  white-space: normal;
+}
+
+.weekly-schedule-table td.time-cell,
+.weekly-schedule-table td.match-name-cell {
+  text-align: left;
+}
+
+.weekly-schedule-table td.time-cell {
+  white-space: nowrap;
+}
+
+.weekly-schedule-table .match-link-btn {
+  width: 100%;
+  white-space: normal;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.weekly-schedule-table td.handicap-cell,
+.weekly-schedule-table td.deadline-cell,
+.weekly-schedule-table td.schedule-action-cell {
+  text-align: center;
+}
+
+.weekly-schedule-table td.deadline-cell,
+.weekly-schedule-table td.schedule-explain-cell {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.weekly-schedule-table td.schedule-explain-cell {
+  color: var(--muted);
+  font-weight: 650;
+  font-size: 12.3px;
+}
+
+.pick-match-btn,
+.prediction-result-chip,
+.schedule-locked-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 0;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.pick-match-btn {
+  cursor: pointer;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.prediction-result-chip {
+  cursor: pointer;
+}
+
+.schedule-locked-chip {
+  background: #f3f4f6;
+  color: var(--muted);
+}
+
+.prediction-win {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  border: 1px solid #86efac !important;
+}
+
+.prediction-draw {
+  background: #fef9c3 !important;
+  color: #854d0e !important;
+  border: 1px solid #fde047 !important;
+}
+
+.prediction-lose {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+.prediction-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.prediction-modal.open {
+  display: flex;
+}
+
+.prediction-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+.prediction-modal-card {
+  position: relative;
+  width: min(620px, 100%);
+  max-height: min(86vh, 760px);
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 30px 80px rgba(31, 41, 55, 0.28);
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.modal-match-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.modal-match-summary div,
+.modal-explanation-box,
+.current-prediction-box {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px;
+  background: #fffaf5;
+}
+
+.modal-match-summary span,
+.modal-explanation-box span,
+.current-prediction-box span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+  font-weight: 800;
+}
+
+.modal-match-summary strong,
+.current-prediction-box strong {
+  display: block;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.modal-explanation-box p {
+  margin: 0;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.modal-current-prediction {
+  margin-top: 12px;
+}
+
+.current-prediction-box {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.current-prediction-box.no-prediction {
+  cursor: default;
+  background: #f9fafb;
+  color: var(--muted);
+}
+
+.modal-prediction-options {
+  margin: 14px 0;
+}
+
+.modal-prediction-options .prediction-btn.active {
+  box-shadow: inset 0 0 0 2px var(--accent-dark);
+}
+
+.modal-status-box {
+  margin-top: 12px;
+}
+
+@media (max-width: 1080px) {
+  .predict-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-expert-card .expert-opinions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .weekly-schedule-table-wrap {
+    overflow-x: auto;
+  }
+
+  .weekly-schedule-table {
+    min-width: 980px;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-match-summary,
+  .dashboard-info-card .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prediction-modal-card {
+    padding: 20px;
+  }
+}

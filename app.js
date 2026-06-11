@@ -13,6 +13,8 @@ let state = {
 };
 
 let selectedMatchRowIndex = null;
+let isPredictionModalOpen = false;
+let modalChoicesVisible = false;
 
 const els = {
   userSelect: document.getElementById('userSelect'),
@@ -23,10 +25,19 @@ const els = {
   selectedHandicap: document.getElementById('selectedHandicap'),
   currentPrediction: document.getElementById('currentPrediction'),
   predictionLockStatus: document.getElementById('predictionLockStatus'),
-  handicapExplanation: document.getElementById('handicapExplanation'),
   statusBox: document.getElementById('statusBox'),
   weeklyScheduleTable: document.getElementById('weeklyScheduleTable'),
   weeklyScheduleCount: document.getElementById('weeklyScheduleCount'),
+  predictionModal: document.getElementById('predictionModal'),
+  predictionModalClose: document.getElementById('predictionModalClose'),
+  modalUserName: document.getElementById('modalUserName'),
+  modalMatchName: document.getElementById('modalMatchName'),
+  modalDateTime: document.getElementById('modalDateTime'),
+  modalHandicap: document.getElementById('modalHandicap'),
+  modalDeadline: document.getElementById('modalDeadline'),
+  modalHandicapExplanation: document.getElementById('modalHandicapExplanation'),
+  modalCurrentPrediction: document.getElementById('modalCurrentPrediction'),
+  modalPredictionOptions: document.getElementById('modalPredictionOptions'),
   scoreTable: document.getElementById('scoreTable'),
   upcomingTable: document.getElementById('upcomingTable'),
   rankingTable: document.getElementById('rankingTable'),
@@ -138,6 +149,7 @@ function renderUserSelect() {
 
 function renderWeeklyScheduleTable() {
   const matches = getOpenMatches();
+  const user = getSelectedUser();
   els.weeklyScheduleCount.textContent = matches.length + ' trận';
 
   if (!matches.length) {
@@ -150,6 +162,9 @@ function renderWeeklyScheduleTable() {
     return group.matches.map((match, index) => {
       const isSelected = Number(match.rowIndex) === Number(selectedMatchRowIndex);
       const deadlineText = formatDeadlineText(match.lockAt);
+      const explanation = getHandicapExplanation(match);
+      const userPrediction = user ? getPredictionFor(match, user) : '';
+      const actionHtml = getScheduleActionHtml(match, userPrediction);
       const dateCell = index === 0
         ? '<td class="date-cell merged-date-cell" rowspan="' + group.matches.length + '">' + escapeHtml(group.date || '-') + '</td>'
         : '';
@@ -161,7 +176,8 @@ function renderWeeklyScheduleTable() {
         '<td class="match-name-cell"><button type="button" class="match-link-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">' + escapeHtml(match.matchName || '-') + '</button></td>',
         '<td class="handicap-cell">' + escapeHtml(match.handicap || '-') + '</td>',
         '<td class="deadline-cell">' + escapeHtml(deadlineText) + '</td>',
-        '<td><button type="button" class="pick-match-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">Dự đoán</button></td>',
+        '<td class="schedule-action-cell">' + actionHtml + '</td>',
+        '<td class="schedule-explain-cell">' + escapeHtml(explanation) + '</td>',
         '</tr>'
       ].join('');
     }).join('');
@@ -176,6 +192,7 @@ function renderWeeklyScheduleTable() {
     '<col class="weekly-col-handicap">',
     '<col class="weekly-col-deadline">',
     '<col class="weekly-col-action">',
+    '<col class="weekly-col-explain">',
     '</colgroup>',
     '<thead><tr>',
     '<th>Ngày</th>',
@@ -184,10 +201,23 @@ function renderWeeklyScheduleTable() {
     '<th>Gia vị</th>',
     '<th>Hạn dự đoán</th>',
     '<th>Chọn</th>',
+    '<th>Giải thích</th>',
     '</tr></thead>',
     '<tbody>', rows, '</tbody>',
     '</table>'
   ].join('');
+}
+
+function getScheduleActionHtml(match, userPrediction) {
+  if (match.isPredictionLocked) {
+    return '<span class="schedule-locked-chip">Đã khóa</span>';
+  }
+
+  if (userPrediction) {
+    return '<button type="button" class="prediction-result-chip ' + getPredictionClass(userPrediction) + '" data-row-index="' + escapeHtml(match.rowIndex) + '" title="Bấm để chọn lại">' + escapeHtml(userPrediction) + '</button>';
+  }
+
+  return '<button type="button" class="pick-match-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">Dự đoán</button>';
 }
 
 function getOpenMatches() {
@@ -218,13 +248,17 @@ function groupMatchesByDate(matches) {
   return Array.from(map.values());
 }
 
-function selectMatch(rowIndex) {
+function selectMatch(rowIndex, options = {}) {
   selectedMatchRowIndex = Number(rowIndex);
+  modalChoicesVisible = false;
   renderWeeklyScheduleTable();
   updateSelectedInfo({ showStatusMessage: true });
   const match = getSelectedMatch();
   if (match) {
     setStatus('Đã chọn trận: ' + match.matchName + '.', match.isPredictionLocked ? 'warning' : 'success');
+  }
+  if (options.openModal) {
+    openPredictionModal();
   }
 }
 
@@ -240,10 +274,10 @@ function updateSelectedInfo(options = {}) {
   els.selectedHandicap.textContent = match ? (match.handicap || 'Không có') : '-';
   els.currentPrediction.textContent = getCurrentPrediction() || '-';
   els.predictionLockStatus.textContent = getLockStatusText(match);
-  els.handicapExplanation.textContent = getHandicapExplanation(match);
 
   renderExpertOpinions();
   updatePredictionAvailability(showStatusMessage);
+  renderPredictionModal();
 }
 
 function getLockStatusText(match) {
@@ -271,18 +305,8 @@ function updatePredictionAvailability(showStatusMessage = true) {
 
   if (!showStatusMessage) return;
 
-  if (!user && !match) {
-    setStatus('Vui lòng chọn tên người dùng và chọn trận ở bảng lịch phía trên.', 'warning');
-    return;
-  }
-
-  if (!user) {
-    setStatus('Vui lòng chọn tên người dùng trước khi dự đoán.', 'warning');
-    return;
-  }
-
-  if (!match) {
-    setStatus('Vui lòng chọn trận đấu ở bảng lịch phía trên.', 'warning');
+  if (!user || !match) {
+    setStatus('Vui lòng chọn tên người dùng và chọn trận đấu trước khi dự đoán.', 'warning');
     return;
   }
 
@@ -420,6 +444,79 @@ function isNearlyInteger(value) {
   return Math.abs(value - Math.round(value)) < 0.000001;
 }
 
+function getPredictionChoices(match) {
+  const handicap = parseHandicap(match && match.handicap);
+  if (handicap !== null && !isNearlyInteger(Math.abs(handicap))) {
+    return ['Thắng', 'Thua'];
+  }
+  return ['Thắng', 'Hòa', 'Thua'];
+}
+
+function getPredictionClass(prediction) {
+  if (prediction === 'Thắng') return 'prediction-win';
+  if (prediction === 'Hòa') return 'prediction-draw';
+  if (prediction === 'Thua') return 'prediction-lose';
+  return '';
+}
+
+function openPredictionModal() {
+  isPredictionModalOpen = true;
+  const currentPrediction = getCurrentPrediction();
+  modalChoicesVisible = !currentPrediction;
+  if (els.predictionModal) {
+    els.predictionModal.classList.add('open');
+    els.predictionModal.setAttribute('aria-hidden', 'false');
+  }
+  renderPredictionModal();
+}
+
+function closePredictionModal() {
+  isPredictionModalOpen = false;
+  modalChoicesVisible = false;
+  if (els.predictionModal) {
+    els.predictionModal.classList.remove('open');
+    els.predictionModal.setAttribute('aria-hidden', 'true');
+  }
+}
+
+function renderPredictionModal() {
+  if (!isPredictionModalOpen || !els.predictionModal) return;
+
+  const user = getSelectedUser();
+  const match = getSelectedMatch();
+  const currentPrediction = getCurrentPrediction();
+
+  els.modalUserName.textContent = user ? user.name : '-';
+  els.modalMatchName.textContent = match ? match.matchName : '-';
+  els.modalDateTime.textContent = match ? [match.date, match.time].filter(Boolean).join(' · ') : '-';
+  els.modalHandicap.textContent = match ? (match.handicap || 'Không có') : '-';
+  els.modalDeadline.textContent = match ? formatDeadlineText(match.lockAt) : '-';
+  els.modalHandicapExplanation.textContent = getHandicapExplanation(match);
+
+  if (currentPrediction) {
+    els.modalCurrentPrediction.innerHTML = [
+      '<button type="button" class="current-prediction-box ' + getPredictionClass(currentPrediction) + '" title="Bấm để chọn lại">',
+      '<span>Dự đoán hiện tại</span>',
+      '<strong>' + escapeHtml(currentPrediction) + '</strong>',
+      '</button>'
+    ].join('');
+  } else {
+    els.modalCurrentPrediction.innerHTML = '<div class="current-prediction-box no-prediction"><span>Dự đoán hiện tại</span><strong>Chưa dự đoán</strong></div>';
+  }
+
+  const choices = match ? getPredictionChoices(match) : [];
+  if (!modalChoicesVisible && currentPrediction) {
+    els.modalPredictionOptions.innerHTML = '';
+  } else {
+    els.modalPredictionOptions.innerHTML = choices.map(choice => {
+      const activeClass = currentPrediction === choice ? ' active' : '';
+      return '<button class="prediction-btn' + activeClass + '" data-prediction="' + escapeHtml(choice) + '" type="button">' + escapeHtml(choice) + '</button>';
+    }).join('');
+  }
+
+  updatePredictionAvailability(false);
+}
+
 async function handlePredictionClick(prediction) {
   const user = getSelectedUser();
   const match = getSelectedMatch();
@@ -447,6 +544,9 @@ async function handlePredictionClick(prediction) {
     await loadData({ silent: true });
 
     const savedValue = getCurrentPrediction();
+    renderWeeklyScheduleTable();
+    modalChoicesVisible = false;
+    renderPredictionModal();
     if (savedValue === prediction) {
       setStatus('Đã lưu dự đoán: ' + prediction, 'success');
     } else {
@@ -565,17 +665,39 @@ function setupTabs() {
 }
 
 function setupEvents() {
-  els.userSelect.addEventListener('change', () => updateSelectedInfo({ showStatusMessage: true }));
+  els.userSelect.addEventListener('change', () => {
+    renderWeeklyScheduleTable();
+    updateSelectedInfo({ showStatusMessage: true });
+  });
   els.refreshBtn.addEventListener('click', () => loadData());
 
   els.weeklyScheduleTable.addEventListener('click', event => {
     const target = event.target.closest('[data-row-index]');
     if (!target) return;
-    selectMatch(target.dataset.rowIndex);
+    const shouldOpenModal = Boolean(event.target.closest('.pick-match-btn, .prediction-result-chip'));
+    selectMatch(target.dataset.rowIndex, { openModal: shouldOpenModal });
   });
 
-  document.querySelectorAll('.prediction-btn').forEach(btn => {
-    btn.addEventListener('click', () => handlePredictionClick(btn.dataset.prediction));
+  els.modalPredictionOptions.addEventListener('click', event => {
+    const btn = event.target.closest('.prediction-btn');
+    if (!btn) return;
+    handlePredictionClick(btn.dataset.prediction);
+  });
+
+  els.modalCurrentPrediction.addEventListener('click', event => {
+    const target = event.target.closest('.current-prediction-box');
+    if (!target || target.classList.contains('no-prediction')) return;
+    modalChoicesVisible = true;
+    renderPredictionModal();
+  });
+
+  els.predictionModalClose.addEventListener('click', closePredictionModal);
+  els.predictionModal.addEventListener('click', event => {
+    if (event.target.dataset.closeModal === 'true') closePredictionModal();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && isPredictionModalOpen) closePredictionModal();
   });
 }
 
