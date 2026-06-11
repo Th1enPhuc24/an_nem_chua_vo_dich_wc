@@ -749,3 +749,129 @@ footer {
 .weekly-match-row.selected td.merged-date-cell {
   background: #dcfce7;
 }
+
+/* Requested dashboard layout: user selector on top, schedule left, selected info + prediction right, expert opinions below. */
+.user-picker-bar {
+  width: min(430px, 100%);
+  margin: -4px auto 18px;
+  padding: 0;
+}
+
+.user-picker-bar label {
+  display: block;
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.predict-dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(330px, 0.95fr);
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 8px;
+}
+
+.dashboard-schedule-card,
+.dashboard-info-card,
+.dashboard-prediction-card,
+.dashboard-expert-card {
+  border-radius: 0;
+}
+
+.dashboard-schedule-card {
+  min-width: 0;
+  min-height: 420px;
+}
+
+.dashboard-side-stack {
+  display: grid;
+  grid-template-rows: minmax(0, 1.1fr) auto;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dashboard-info-card,
+.dashboard-prediction-card {
+  min-width: 0;
+}
+
+.dashboard-prediction-card {
+  margin-top: 0;
+}
+
+.dashboard-prediction-card .prediction-options {
+  margin: 14px 0;
+}
+
+.dashboard-expert-card {
+  margin-top: 0;
+  min-height: 300px;
+}
+
+.dashboard-expert-card .expert-opinions-grid {
+  max-height: 250px;
+}
+
+.weekly-schedule-card .hint {
+  display: none;
+}
+
+/* Fit schedule table inside the left block, keep merged-date grouping. */
+.weekly-schedule-table-wrap {
+  width: 100%;
+  max-width: none;
+  max-height: 360px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.weekly-schedule-table {
+  width: 100%;
+  min-width: 760px;
+  table-layout: fixed;
+}
+
+.weekly-schedule-table col.weekly-col-date { width: 108px; }
+.weekly-schedule-table col.weekly-col-time { width: 70px; }
+.weekly-schedule-table col.weekly-col-match { width: 270px; }
+.weekly-schedule-table col.weekly-col-handicap { width: 66px; }
+.weekly-schedule-table col.weekly-col-deadline { width: 142px; }
+.weekly-schedule-table col.weekly-col-action { width: 86px; }
+
+.weekly-schedule-table th,
+.weekly-schedule-table td {
+  padding: 10px 10px;
+}
+
+.weekly-schedule-table td.merged-date-cell {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.weekly-schedule-table td.time-cell,
+.weekly-schedule-table td.match-name-cell {
+  text-align: left;
+}
+
+.weekly-schedule-table td.handicap-cell,
+.weekly-schedule-table td.deadline-cell,
+.weekly-schedule-table td:last-child {
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .predict-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-side-stack {
+    grid-template-rows: auto auto;
+  }
+
+  .weekly-schedule-table-wrap {
+    max-height: 520px;
+  }
+}

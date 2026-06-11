@@ -23,86 +23,84 @@
 
   <main>
     <section id="predictPage" class="page active">
-      <section class="card weekly-schedule-card">
-        <div class="section-head">
-          <h2>Lịch thi đấu còn mở dự đoán</h2>
-          <span id="weeklyScheduleCount" class="pill">0 trận</span>
-        </div>
-        <p class="hint">Click vào tên trận đấu hoặc bấm nút <strong>Dự đoán</strong> để chọn trận. Bảng hiển thị tất cả các trận chưa khóa dự đoán.</p>
-        <div id="weeklyScheduleTable" class="table-wrap weekly-schedule-table-wrap"></div>
+      <section class="user-picker-bar">
+        <label for="userSelect">Chọn tên người dùng</label>
+        <select id="userSelect">
+          <option value="">Đang tải danh sách...</option>
+        </select>
       </section>
 
-      <div class="grid two-cols selection-grid">
-        <section class="card">
-          <h2>1. Chọn thông tin</h2>
-          <label for="userSelect">Tên người dùng</label>
-          <select id="userSelect">
-            <option value="">Đang tải danh sách...</option>
-          </select>
-        </section>
-
-        <section class="card highlight-card">
-          <h2>Thông tin đã chọn</h2>
-          <div class="info-grid">
-            <div>
-              <span>Người dùng</span>
-              <strong id="selectedUserName">-</strong>
-            </div>
-            <div>
-              <span>Số nem chua đã đóng góp</span>
-              <strong id="selectedContribution">-</strong>
-            </div>
-            <div>
-              <span>Trận đấu</span>
-              <strong id="selectedMatchName">-</strong>
-            </div>
-            <div>
-              <span>Ngày · Giờ</span>
-              <strong id="selectedDateTime">-</strong>
-            </div>
-            <div>
-              <span>Gia vị</span>
-              <strong id="selectedHandicap">-</strong>
-            </div>
-            <div>
-              <span>Dự đoán hiện tại</span>
-              <strong id="currentPrediction">-</strong>
-            </div>
-            <div class="full-info-row">
-              <span>Hạn dự đoán</span>
-              <strong id="predictionLockStatus">-</strong>
-            </div>
-            <div class="full-info-row handicap-explanation-row">
-              <span>Giải thích gia vị</span>
-              <p id="handicapExplanation" class="handicap-explanation">Chọn trận đấu để xem cách tính gia vị.</p>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <div class="prediction-expert-grid">
-        <section class="card prediction-card compact-prediction-card">
-          <h2>2. Dự đoán kết quả trận đấu</h2>
-          <p class="hint">Dự đoán sẽ tự khóa trước giờ thi đấu 15 phút.</p>
-          <div class="prediction-options" role="group" aria-label="Dự đoán">
-            <button class="prediction-btn" data-prediction="Thắng" type="button">Thắng</button>
-            <button class="prediction-btn" data-prediction="Hòa" type="button">Hòa</button>
-            <button class="prediction-btn" data-prediction="Thua" type="button">Thua</button>
-          </div>
-          <div id="statusBox" class="status-box" role="status">Sẵn sàng.</div>
-        </section>
-
-        <section class="card expert-card">
+      <div class="predict-dashboard-layout">
+        <section class="card weekly-schedule-card dashboard-schedule-card">
           <div class="section-head">
-            <h2>Ý kiến các chuyên gia về trận đấu</h2>
-            <span id="expertOpinionCount" class="pill">0 ý kiến</span>
+            <h2>Lịch thi đấu</h2>
+            <span id="weeklyScheduleCount" class="pill">0 trận</span>
           </div>
-          <p class="hint expert-hint">Hiển thị dự đoán của tất cả người dùng cho trận đấu đang chọn.</p>
-          <div id="expertOpinions" class="expert-opinions-grid">
-            <p class="empty">Chọn một trận đấu để xem ý kiến.</p>
-          </div>
+          <div id="weeklyScheduleTable" class="table-wrap weekly-schedule-table-wrap"></div>
         </section>
+
+        <div class="dashboard-side-stack">
+          <section class="card highlight-card dashboard-info-card">
+            <h2>Thông tin đã chọn</h2>
+            <div class="info-grid">
+              <div>
+                <span>Người dùng</span>
+                <strong id="selectedUserName">-</strong>
+              </div>
+              <div>
+                <span>Số nem chua đã đóng góp</span>
+                <strong id="selectedContribution">-</strong>
+              </div>
+              <div>
+                <span>Trận đấu</span>
+                <strong id="selectedMatchName">-</strong>
+              </div>
+              <div>
+                <span>Ngày · Giờ</span>
+                <strong id="selectedDateTime">-</strong>
+              </div>
+              <div>
+                <span>Gia vị</span>
+                <strong id="selectedHandicap">-</strong>
+              </div>
+              <div>
+                <span>Dự đoán hiện tại</span>
+                <strong id="currentPrediction">-</strong>
+              </div>
+              <div class="full-info-row">
+                <span>Hạn dự đoán</span>
+                <strong id="predictionLockStatus">-</strong>
+              </div>
+              <div class="full-info-row handicap-explanation-row">
+                <span>Giải thích gia vị</span>
+                <p id="handicapExplanation" class="handicap-explanation">Chọn trận đấu để xem cách tính gia vị.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="card prediction-card compact-prediction-card dashboard-prediction-card">
+            <h2>Dự đoán kết quả trận đấu</h2>
+            <p class="hint">Dự đoán sẽ tự khóa trước giờ thi đấu 15 phút.</p>
+            <div class="prediction-options" role="group" aria-label="Dự đoán">
+              <button class="prediction-btn" data-prediction="Thắng" type="button">Thắng</button>
+              <button class="prediction-btn" data-prediction="Hòa" type="button">Hòa</button>
+              <button class="prediction-btn" data-prediction="Thua" type="button">Thua</button>
+            </div>
+            <div id="statusBox" class="status-box" role="status">Sẵn sàng.</div>
+          </section>
+        </div>
       </div>
+
+      <section class="card expert-card dashboard-expert-card">
+        <div class="section-head">
+          <h2>Ý kiến các chuyên gia về trận đấu</h2>
+          <span id="expertOpinionCount" class="pill">0 ý kiến</span>
+        </div>
+        <p class="hint expert-hint">Hiển thị dự đoán của tất cả người dùng cho trận đấu đang chọn.</p>
+        <div id="expertOpinions" class="expert-opinions-grid">
+          <p class="empty">Chọn một trận đấu để xem ý kiến.</p>
+        </div>
+      </section>
     </section>
 
     <section id="trackingPage" class="page">
