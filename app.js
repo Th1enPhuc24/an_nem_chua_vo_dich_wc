@@ -146,27 +146,37 @@ function renderWeeklyScheduleTable() {
   }
 
   const groups = groupMatchesByDate(matches);
-  let rows = '';
-
-  groups.forEach(group => {
-    group.matches.forEach((match, index) => {
+  const rows = groups.map(group => {
+    return group.matches.map((match, index) => {
       const isSelected = Number(match.rowIndex) === Number(selectedMatchRowIndex);
       const deadlineText = formatDeadlineText(match.lockAt);
-      rows += '<tr class="weekly-match-row' + (isSelected ? ' selected' : '') + '" data-row-index="' + escapeHtml(match.rowIndex) + '">';
-      if (index === 0) {
-        rows += '<td class="merged-date-cell" rowspan="' + group.matches.length + '">' + escapeHtml(group.date) + '</td>';
-      }
-      rows += '<td class="time-cell">' + escapeHtml(match.time || '-') + '</td>';
-      rows += '<td class="match-name-cell"><button type="button" class="match-link-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">' + escapeHtml(match.matchName || '-') + '</button></td>';
-      rows += '<td class="handicap-cell">' + escapeHtml(match.handicap || '-') + '</td>';
-      rows += '<td class="deadline-cell">' + escapeHtml(deadlineText) + '</td>';
-      rows += '<td><button type="button" class="pick-match-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">Dự đoán</button></td>';
-      rows += '</tr>';
-    });
-  });
+      const dateCell = index === 0
+        ? '<td class="date-cell merged-date-cell" rowspan="' + group.matches.length + '">' + escapeHtml(group.date || '-') + '</td>'
+        : '';
+
+      return [
+        '<tr class="weekly-match-row' + (isSelected ? ' selected' : '') + '" data-row-index="' + escapeHtml(match.rowIndex) + '">',
+        dateCell,
+        '<td class="time-cell">' + escapeHtml(match.time || '-') + '</td>',
+        '<td class="match-name-cell"><button type="button" class="match-link-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">' + escapeHtml(match.matchName || '-') + '</button></td>',
+        '<td class="handicap-cell">' + escapeHtml(match.handicap || '-') + '</td>',
+        '<td class="deadline-cell">' + escapeHtml(deadlineText) + '</td>',
+        '<td><button type="button" class="pick-match-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">Dự đoán</button></td>',
+        '</tr>'
+      ].join('');
+    }).join('');
+  }).join('');
 
   els.weeklyScheduleTable.innerHTML = [
     '<table class="weekly-schedule-table">',
+    '<colgroup>',
+    '<col class="weekly-col-date">',
+    '<col class="weekly-col-time">',
+    '<col class="weekly-col-match">',
+    '<col class="weekly-col-handicap">',
+    '<col class="weekly-col-deadline">',
+    '<col class="weekly-col-action">',
+    '</colgroup>',
     '<thead><tr>',
     '<th>Ngày</th>',
     '<th>Giờ</th>',
@@ -348,7 +358,7 @@ function getHandicapExplanation(match) {
   if (!match) return 'Chọn trận đấu để xem cách tính gia vị.';
 
   const handicap = parseHandicap(match.handicap);
-  if (handicap === null) return 'Trận này chưa có gia vị/chấp nên chưa có phần giải thích.';
+  if (handicap === null) return 'Trận này chưa có gia vị nên chưa có phần giải thích.';
 
   const teams = splitTeams(match.matchName);
   if (!teams) return 'Không tách được tên hai đội từ dữ liệu trận đấu.';

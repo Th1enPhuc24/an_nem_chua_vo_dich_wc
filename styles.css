@@ -606,3 +606,146 @@ footer {
     width: 170px;
   }
 }
+
+
+/* Final cleanup: compact open-match table, left-aligned rows, no dropdown note */
+.weekly-schedule-table-wrap {
+  width: 80%;
+  max-width: 940px;
+  max-height: 540px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: auto;
+}
+
+.weekly-schedule-table {
+  width: 100%;
+  min-width: 820px;
+  table-layout: fixed;
+}
+
+.weekly-schedule-table th,
+.weekly-schedule-table td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  vertical-align: middle;
+}
+
+.weekly-schedule-table th:nth-child(1),
+.weekly-schedule-table td:nth-child(1) {
+  width: 116px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(2),
+.weekly-schedule-table td:nth-child(2) {
+  width: 76px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(3),
+.weekly-schedule-table td:nth-child(3) {
+  width: 320px;
+  text-align: left;
+}
+
+.weekly-schedule-table th:nth-child(4),
+.weekly-schedule-table td:nth-child(4) {
+  width: 72px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(5),
+.weekly-schedule-table td:nth-child(5) {
+  width: 162px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table th:nth-child(6),
+.weekly-schedule-table td:nth-child(6) {
+  width: 92px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table .date-cell {
+  background: #ecfdf5;
+  color: #14532d;
+  font-weight: 900;
+  border-right: 1px solid var(--line);
+}
+
+.weekly-schedule-table .match-name-cell {
+  text-align: left;
+}
+
+.weekly-schedule-table .match-link-btn {
+  text-align: left;
+  width: 100%;
+}
+
+.weekly-match-row:hover td,
+.weekly-match-row.selected td {
+  background: #fff7ed;
+}
+
+.weekly-match-row.selected td {
+  background: #ffedd5;
+}
+
+@media (max-width: 960px) {
+  .weekly-schedule-table-wrap {
+    width: 100%;
+    max-width: none;
+    max-height: 540px;
+  }
+}
+
+/* Restore merged-date layout only: keep grouped dates while preserving column alignment. */
+.weekly-schedule-table col.weekly-col-date { width: 116px; }
+.weekly-schedule-table col.weekly-col-time { width: 76px; }
+.weekly-schedule-table col.weekly-col-match { width: 320px; }
+.weekly-schedule-table col.weekly-col-handicap { width: 72px; }
+.weekly-schedule-table col.weekly-col-deadline { width: 162px; }
+.weekly-schedule-table col.weekly-col-action { width: 92px; }
+
+.weekly-schedule-table td.merged-date-cell {
+  background: #ecfdf5;
+  color: #14532d;
+  font-weight: 900;
+  text-align: left;
+  vertical-align: middle;
+  border-right: 1px solid var(--line);
+}
+
+.weekly-schedule-table td.time-cell {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.weekly-schedule-table td.match-name-cell {
+  text-align: left;
+}
+
+.weekly-schedule-table td.handicap-cell,
+.weekly-schedule-table td.deadline-cell,
+.weekly-schedule-table td:last-child {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weekly-match-row:hover td:not(.merged-date-cell) {
+  background: #fff7ed;
+}
+
+.weekly-match-row.selected td:not(.merged-date-cell) {
+  background: #ffedd5;
+}
+
+.weekly-match-row.selected td.merged-date-cell {
+  background: #dcfce7;
+}
