@@ -440,50 +440,74 @@ footer {
 }
 
 .weekly-schedule-table-wrap {
-  max-height: 420px;
+  max-height: 480px;
+  overflow: auto;
+}
+
+.weekly-schedule-table {
+  table-layout: fixed;
+  min-width: 980px;
+}
+
+.weekly-schedule-table th,
+.weekly-schedule-table td {
+  vertical-align: middle;
 }
 
 .weekly-schedule-table th:nth-child(1),
 .weekly-schedule-table td:nth-child(1) {
-  width: 132px;
-  white-space: nowrap;
-}
-
-.weekly-schedule-table th:nth-child(2),
-.weekly-schedule-table td:nth-child(2) {
-  width: 82px;
+  width: 130px;
   white-space: nowrap;
   text-align: center;
 }
 
+.weekly-schedule-table th:nth-child(2),
+.weekly-schedule-table td:nth-child(2) {
+  width: 90px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.weekly-schedule-table th:nth-child(3),
+.weekly-schedule-table td:nth-child(3) {
+  width: auto;
+}
+
 .weekly-schedule-table th:nth-child(4),
 .weekly-schedule-table td:nth-child(4) {
-  width: 84px;
+  width: 90px;
   text-align: center;
   white-space: nowrap;
 }
 
 .weekly-schedule-table th:nth-child(5),
 .weekly-schedule-table td:nth-child(5) {
-  width: 230px;
+  width: 180px;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .weekly-schedule-table th:nth-child(6),
 .weekly-schedule-table td:nth-child(6) {
   width: 110px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .weekly-match-row {
   cursor: pointer;
 }
 
-.weekly-match-row:hover td {
+.weekly-match-row:hover td:not(.merged-date-cell) {
   background: #fff7ed;
 }
 
-.weekly-match-row.selected td {
+.weekly-match-row.selected td:not(.merged-date-cell) {
   background: #ffedd5;
+}
+
+.weekly-match-row.selected .merged-date-cell {
+  background: #dcfce7;
 }
 
 .merged-date-cell {
@@ -496,8 +520,13 @@ footer {
 }
 
 .time-cell,
-.handicap-cell {
+.handicap-cell,
+.deadline-cell {
   font-weight: 800;
+}
+
+.match-name-cell {
+  overflow-wrap: anywhere;
 }
 
 .match-link-btn {
@@ -508,6 +537,7 @@ footer {
   font: inherit;
   font-weight: 900;
   text-align: left;
+  line-height: 1.35;
   cursor: pointer;
 }
 
@@ -567,8 +597,12 @@ footer {
     max-height: 520px;
   }
 
+  .weekly-schedule-table {
+    min-width: 900px;
+  }
+
   .weekly-schedule-table th:nth-child(5),
   .weekly-schedule-table td:nth-child(5) {
-    width: auto;
+    width: 170px;
   }
 }

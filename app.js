@@ -1,7 +1,6 @@
 // Apps Script Web App /exec URL.
 const API_URL = 'https://script.google.com/macros/s/AKfycbymJ_OflCYsIJdR9IEUS_iwEym2AfI7WNurbIt64YXZkJEKLJcXi3sAnEhCv-qBR8EN/exec';
 const APP_TIMEZONE = 'Asia/Ho_Chi_Minh';
-const WEEK_DAYS_AHEAD = 7;
 
 let state = {
   users: [],
@@ -138,11 +137,11 @@ function renderUserSelect() {
 }
 
 function renderWeeklyScheduleTable() {
-  const matches = getMatchesInNextWeek();
+  const matches = getOpenMatches();
   els.weeklyScheduleCount.textContent = matches.length + ' trận';
 
   if (!matches.length) {
-    els.weeklyScheduleTable.innerHTML = '<p class="empty">Không có trận nào trong một tuần tới.</p>';
+    els.weeklyScheduleTable.innerHTML = '<p class="empty">Không còn trận nào đang mở dự đoán.</p>';
     return;
   }
 
@@ -152,16 +151,16 @@ function renderWeeklyScheduleTable() {
   groups.forEach(group => {
     group.matches.forEach((match, index) => {
       const isSelected = Number(match.rowIndex) === Number(selectedMatchRowIndex);
-      const statusText = getCompactLockStatusText(match);
+      const deadlineText = formatDeadlineText(match.lockAt);
       rows += '<tr class="weekly-match-row' + (isSelected ? ' selected' : '') + '" data-row-index="' + escapeHtml(match.rowIndex) + '">';
       if (index === 0) {
         rows += '<td class="merged-date-cell" rowspan="' + group.matches.length + '">' + escapeHtml(group.date) + '</td>';
       }
       rows += '<td class="time-cell">' + escapeHtml(match.time || '-') + '</td>';
-      rows += '<td><button type="button" class="match-link-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">' + escapeHtml(match.matchName || '-') + '</button></td>';
+      rows += '<td class="match-name-cell"><button type="button" class="match-link-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">' + escapeHtml(match.matchName || '-') + '</button></td>';
       rows += '<td class="handicap-cell">' + escapeHtml(match.handicap || '-') + '</td>';
-      rows += '<td>' + escapeHtml(statusText) + '</td>';
-      rows += '<td><button type="button" class="pick-match-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">' + (match.isPredictionLocked ? 'Xem' : 'Dự đoán') + '</button></td>';
+      rows += '<td class="deadline-cell">' + escapeHtml(deadlineText) + '</td>';
+      rows += '<td><button type="button" class="pick-match-btn" data-row-index="' + escapeHtml(match.rowIndex) + '">Dự đoán</button></td>';
       rows += '</tr>';
     });
   });
@@ -173,7 +172,7 @@ function renderWeeklyScheduleTable() {
     '<th>Giờ</th>',
     '<th>Tên trận đấu</th>',
     '<th>Gia vị</th>',
-    '<th>Trạng thái dự đoán</th>',
+    '<th>Hạn dự đoán</th>',
     '<th>Chọn</th>',
     '</tr></thead>',
     '<tbody>', rows, '</tbody>',
@@ -181,19 +180,14 @@ function renderWeeklyScheduleTable() {
   ].join('');
 }
 
-function getMatchesInNextWeek() {
-  const today = getTodayVNParts();
-
+function getOpenMatches() {
   return state.matches
+    .filter(match => !match.isPredictionLocked)
     .map(match => ({ match, dateParts: parseDateDisplay(match.date), timeParts: parseTimeDisplay(match.time) }))
-    .filter(item => {
-      if (!item.dateParts) return false;
-      const diff = daysBetween(today, item.dateParts);
-      return diff >= 0 && diff <= WEEK_DAYS_AHEAD;
-    })
     .sort((a, b) => {
-      const dateDiff = datePartsToTime(a.dateParts) - datePartsToTime(b.dateParts);
-      if (dateDiff !== 0) return dateDiff;
+      const aDate = a.dateParts ? datePartsToTime(a.dateParts) : Number.MAX_SAFE_INTEGER;
+      const bDate = b.dateParts ? datePartsToTime(b.dateParts) : Number.MAX_SAFE_INTEGER;
+      if (aDate !== bDate) return aDate - bDate;
       const aMinutes = itemTimeToMinutes(a.timeParts);
       const bMinutes = itemTimeToMinutes(b.timeParts);
       if (aMinutes !== bMinutes) return aMinutes - bMinutes;
@@ -244,14 +238,15 @@ function updateSelectedInfo(options = {}) {
 
 function getLockStatusText(match) {
   if (!match) return '-';
-  if (match.isPredictionLocked) return 'Đã khóa từ ' + (match.lockAt || '-');
-  return 'Còn mở. Khóa lúc ' + (match.lockAt || '-');
+  return formatDeadlineText(match.lockAt);
 }
 
-function getCompactLockStatusText(match) {
-  if (!match) return '-';
-  if (match.isPredictionLocked) return 'Đã khóa từ ' + (match.lockAt || '-');
-  return 'Còn mở đến ' + (match.lockAt || '-');
+function formatDeadlineText(lockAt) {
+  const text = String(lockAt || '').trim();
+  if (!text || text === '-') return '-';
+  const m = text.match(/^(\d{1,2}\/\d{1,2}\/\d{4})\s+(\d{1,2}:\d{2})$/);
+  if (m) return m[2] + ' ngày ' + m[1];
+  return text;
 }
 
 function updatePredictionAvailability(showStatusMessage = true) {
@@ -282,11 +277,11 @@ function updatePredictionAvailability(showStatusMessage = true) {
   }
 
   if (match.isPredictionLocked) {
-    setStatus('Trận này đã khóa dự đoán từ ' + (match.lockAt || '-') + '.', 'error');
+    setStatus('Trận này đã khóa dự đoán từ ' + formatDeadlineText(match.lockAt) + '.', 'error');
     return;
   }
 
-  setStatus('Trận này còn mở dự đoán. Hạn chót: ' + (match.lockAt || '-') + '.', 'success');
+  setStatus('Trận này còn mở dự đoán. Hạn chót: ' + formatDeadlineText(match.lockAt) + '.', 'success');
 }
 
 function getSelectedUser() {
@@ -369,7 +364,7 @@ function getHandicapExplanation(match) {
   if (isNearlyInteger(absHandicap)) {
     const h = Math.round(absHandicap);
     if (h === 0) {
-      return 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ 1 bàn trở lên thì kết quả là Thắng. Nếu ' + teamA + ' hòa ' + teamB + ' thì kết quả là Hòa. Nếu ' + teamA + ' thua ' + teamB + ' thì kết quả là Thua.';
+      return 'Chọn Thắng nếu bạn tin rằng ' + teamA + ' thắng ' + teamB + ' với cách biệt từ 1 bàn trở lên. Chọn Hòa nếu bạn tin rằng ' + teamA + ' hòa ' + teamB + '. Chọn Thua nếu bạn tin rằng ' + teamA + ' thua ' + teamB + '.';
     }
 
     const winGap = h + 1;
@@ -377,24 +372,24 @@ function getHandicapExplanation(match) {
     const loseMaxGap = h - 1;
     let loseSentence;
     if (loseMaxGap <= 0) {
-      loseSentence = 'Nếu ' + teamA + ' hòa hoặc thua ' + teamB + ' thì kết quả là Thua.';
+      loseSentence = 'Chọn Thua nếu bạn tin rằng ' + teamA + ' hòa hoặc thua ' + teamB + '.';
     } else {
-      loseSentence = 'Nếu ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + loseMaxGap + ' bàn, hoặc hòa/thua trước ' + teamB + ', thì kết quả là Thua.';
+      loseSentence = 'Chọn Thua nếu bạn tin rằng ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + loseMaxGap + ' bàn, hoặc hòa/thua trước ' + teamB + '.';
     }
 
-    return 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + winGap + ' bàn trở lên thì kết quả là Thắng. Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt đúng ' + drawGap + ' bàn thì kết quả là Hòa. ' + loseSentence;
+    return 'Chọn Thắng nếu bạn tin rằng ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + winGap + ' bàn trở lên. Chọn Hòa nếu bạn tin rằng ' + teamA + ' thắng ' + teamB + ' với cách biệt đúng ' + drawGap + ' bàn. ' + loseSentence;
   }
 
   const winGap = Math.ceil(absHandicap);
   const loseMaxGap = Math.floor(absHandicap);
   let loseSentence;
   if (loseMaxGap <= 0) {
-    loseSentence = 'Nếu ' + teamA + ' hòa hoặc thua ' + teamB + ' thì kết quả là Thua.';
+    loseSentence = 'Chọn Thua nếu bạn tin rằng ' + teamA + ' hòa hoặc thua ' + teamB + '.';
   } else {
-    loseSentence = 'Nếu ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + loseMaxGap + ' bàn, hoặc hòa/thua trước ' + teamB + ', thì kết quả là Thua.';
+    loseSentence = 'Chọn Thua nếu bạn tin rằng ' + teamA + ' chỉ thắng ' + teamB + ' với cách biệt tối đa ' + loseMaxGap + ' bàn, hoặc hòa/thua trước ' + teamB + '.';
   }
 
-  return 'Nếu ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + winGap + ' bàn trở lên thì kết quả là Thắng. ' + loseSentence;
+  return 'Chọn Thắng nếu bạn tin rằng ' + teamA + ' thắng ' + teamB + ' với cách biệt từ ' + winGap + ' bàn trở lên. ' + loseSentence;
 }
 
 function parseHandicap(value) {
@@ -425,7 +420,7 @@ async function handlePredictionClick(prediction) {
   }
 
   if (match.isPredictionLocked) {
-    setStatus('Trận này đã khóa dự đoán từ ' + (match.lockAt || '-') + '.', 'error');
+    setStatus('Trận này đã khóa dự đoán từ ' + formatDeadlineText(match.lockAt) + '.', 'error');
     return;
   }
 
@@ -464,12 +459,12 @@ function renderTrackingTables() {
     m.resultAfterHandicap || '-'
   ]), 'Chưa có trận nào có kết quả.');
 
-  renderTable(els.upcomingTable, ['Ngày', 'Giờ', 'Trận đấu', 'Gia vị', 'Trạng thái'], state.upcomingMatches.map(m => [
+  renderTable(els.upcomingTable, ['Ngày', 'Giờ', 'Trận đấu', 'Gia vị', 'Hạn dự đoán'], state.upcomingMatches.map(m => [
     m.date,
     m.time,
     m.matchName,
     m.handicap || '-',
-    m.isPredictionLocked ? 'Đã khóa' : 'Còn mở đến ' + (m.lockAt || '-')
+    m.isPredictionLocked ? 'Đã khóa' : formatDeadlineText(m.lockAt)
   ]), 'Không còn trận sắp tới.');
 
   renderTable(els.rankingTable, ['Tên người dùng', 'Số nem chua đã đóng góp'], state.rankings.map(u => [
