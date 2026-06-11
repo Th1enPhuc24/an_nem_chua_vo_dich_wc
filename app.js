@@ -27,10 +27,10 @@ const els = {
   expertOpinions: document.getElementById('expertOpinions'),
   expertOpinionCount: document.getElementById('expertOpinionCount'),
   scoreTable: document.getElementById('scoreTable'),
-  upcomingTable: document.getElementById('upcomingTable'),
   rankingTable: document.getElementById('rankingTable'),
   finishedCount: document.getElementById('finishedCount'),
-  upcomingCount: document.getElementById('upcomingCount'),
+  detailPredictionTable: document.getElementById('detailPredictionTable'),
+  detailPredictionCount: document.getElementById('detailPredictionCount'),
   lastUpdated: document.getElementById('lastUpdated'),
   refreshBtn: document.getElementById('refreshBtn'),
   modal: document.getElementById('predictionModal'),
@@ -399,10 +399,59 @@ function getPredictionClass(prediction) {
 
 function renderTrackingTables() {
   els.finishedCount.textContent = state.finishedMatches.length + ' trận';
-  els.upcomingCount.textContent = state.upcomingMatches.length + ' trận';
-  renderTable(els.scoreTable, ['Ngày', 'Giờ', 'Trận đấu', 'Tỷ số', 'Sau gia vị'], state.finishedMatches.map(m => [m.date, m.time, m.matchName, m.score, m.resultAfterHandicap || '-']), 'Chưa có trận nào có kết quả.');
-  renderTable(els.upcomingTable, ['Ngày', 'Giờ', 'Trận đấu', 'Gia vị', 'Hạn dự đoán'], state.upcomingMatches.map(m => [m.date, m.time, m.matchName, m.handicap || '-', formatDeadline(m.lockAt)]), 'Không còn trận sắp tới.');
-  renderTable(els.rankingTable, ['Tên người dùng', 'Số nem chua đã đóng góp'], state.rankings.map(u => [u.name, u.contributionDisplay]), 'Chưa có dữ liệu người dùng.');
+  if (els.detailPredictionCount) els.detailPredictionCount.textContent = state.matches.length + ' trận';
+
+  renderTable(
+    els.scoreTable,
+    ['Ngày', 'Giờ', 'Trận đấu', 'Tỷ số', 'Sau gia vị'],
+    state.finishedMatches.map(m => [m.date, m.time, m.matchName, m.score, m.resultAfterHandicap || '-']),
+    'Chưa có trận nào có kết quả.'
+  );
+
+  renderTable(
+    els.rankingTable,
+    ['Tên người dùng', 'Số nem chua đã đóng góp'],
+    state.rankings.map(u => [u.name, u.contributionDisplay]),
+    'Chưa có dữ liệu người dùng.'
+  );
+
+  renderDetailPredictionTable();
+}
+
+function renderDetailPredictionTable() {
+  if (!els.detailPredictionTable) return;
+
+  if (!state.matches || state.matches.length === 0) {
+    els.detailPredictionTable.innerHTML = '<p class="empty">Chưa có dữ liệu dự đoán.</p>';
+    return;
+  }
+
+  const baseHeaders = ['Menu', 'Tỷ lệ chấp', 'Kết quả trận đấu'];
+  const userHeaders = state.users.map(user => user.name);
+  const headers = baseHeaders.concat(userHeaders);
+
+  const thead = '<thead><tr>' + headers.map((header, index) => {
+    const cls = index >= baseHeaders.length ? ' class="user-prediction-header"' : '';
+    return '<th' + cls + '>' + escapeHtml(header) + '</th>';
+  }).join('') + '</tr></thead>';
+
+  const tbody = '<tbody>' + state.matches.map(match => {
+    const baseCells = [
+      match.matchName || '-',
+      match.handicap || '-',
+      match.score || '-'
+    ];
+    const predictionCells = state.users.map(user => getPredictionFor(match, user) || '');
+    const cells = baseCells.concat(predictionCells);
+
+    return '<tr>' + cells.map((cell, index) => {
+      const predictionClass = index >= baseHeaders.length ? getPredictionClass(cell) : '';
+      const cls = index >= baseHeaders.length ? ' class="prediction-detail-cell ' + predictionClass + '"' : '';
+      return '<td' + cls + '>' + escapeHtml(cell || '-') + '</td>';
+    }).join('') + '</tr>';
+  }).join('') + '</tbody>';
+
+  els.detailPredictionTable.innerHTML = '<table class="detail-prediction-table">' + thead + tbody + '</table>';
 }
 
 function renderTable(container, headers, rows, emptyText) {
