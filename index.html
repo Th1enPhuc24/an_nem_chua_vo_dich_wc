@@ -23,23 +23,23 @@
 
   <main>
     <section id="predictPage" class="page active">
-      <section class="user-picker-bar">
+      <section class="user-picker-card card">
         <label for="userSelect">Chọn tên người dùng</label>
         <select id="userSelect">
           <option value="">Đang tải danh sách...</option>
         </select>
       </section>
 
-      <section class="card weekly-schedule-card dashboard-schedule-card">
+      <section class="card schedule-card">
         <div class="section-head">
           <h2>Lịch thi đấu</h2>
-          <span id="weeklyScheduleCount" class="pill">0 trận</span>
+          <span id="openMatchCount" class="pill">0 trận</span>
         </div>
-        <div id="weeklyScheduleTable" class="table-wrap weekly-schedule-table-wrap"></div>
+        <div id="scheduleTable" class="table-wrap schedule-table-wrap"></div>
       </section>
 
-      <div class="predict-detail-layout">
-        <section class="card dashboard-info-card">
+      <div class="detail-expert-grid">
+        <section class="card info-card">
           <h2>Thông tin đã chọn</h2>
           <div class="info-grid">
             <div>
@@ -68,12 +68,16 @@
             </div>
             <div class="full-info-row">
               <span>Hạn dự đoán</span>
-              <strong id="predictionLockStatus">-</strong>
+              <strong id="predictionDeadline">-</strong>
+            </div>
+            <div class="full-info-row">
+              <span>Giải thích gia vị</span>
+              <strong id="handicapExplanation">-</strong>
             </div>
           </div>
         </section>
 
-        <section class="card expert-card dashboard-expert-card">
+        <section class="card expert-card">
           <div class="section-head">
             <h2>Ý kiến các chuyên gia về trận đấu</h2>
             <span id="expertOpinionCount" class="pill">0 ý kiến</span>
@@ -82,43 +86,6 @@
           <div id="expertOpinions" class="expert-opinions-grid">
             <p class="empty">Chọn một trận đấu để xem ý kiến.</p>
           </div>
-        </section>
-      </div>
-
-      <div id="predictionModal" class="prediction-modal" aria-hidden="true">
-        <div class="prediction-modal-backdrop" data-close-modal="true"></div>
-        <section class="prediction-modal-card" role="dialog" aria-modal="true" aria-labelledby="predictionModalTitle">
-          <button id="predictionModalClose" class="modal-close-btn" type="button" aria-label="Đóng">×</button>
-          <h2 id="predictionModalTitle">Dự đoán kết quả trận đấu</h2>
-          <div class="modal-match-summary">
-            <div>
-              <span>Người dùng</span>
-              <strong id="modalUserName">-</strong>
-            </div>
-            <div>
-              <span>Trận đấu</span>
-              <strong id="modalMatchName">-</strong>
-            </div>
-            <div>
-              <span>Ngày · Giờ</span>
-              <strong id="modalDateTime">-</strong>
-            </div>
-            <div>
-              <span>Gia vị</span>
-              <strong id="modalHandicap">-</strong>
-            </div>
-            <div>
-              <span>Hạn dự đoán</span>
-              <strong id="modalDeadline">-</strong>
-            </div>
-          </div>
-          <div class="modal-explanation-box">
-            <span>Giải thích gia vị</span>
-            <p id="modalHandicapExplanation">-</p>
-          </div>
-          <div id="modalCurrentPrediction" class="modal-current-prediction"></div>
-          <div id="modalPredictionOptions" class="prediction-options modal-prediction-options" role="group" aria-label="Dự đoán"></div>
-          <div id="statusBox" class="status-box modal-status-box" role="status">Sẵn sàng.</div>
         </section>
       </div>
     </section>
@@ -153,6 +120,49 @@
       </div>
     </section>
   </main>
+
+  <div id="predictionModal" class="modal-backdrop" aria-hidden="true">
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="predictionModalTitle">
+      <button id="closeModalBtn" class="modal-close" type="button" aria-label="Đóng">×</button>
+      <h2 id="predictionModalTitle">Dự đoán kết quả trận đấu</h2>
+
+      <div class="modal-info-grid">
+        <div>
+          <span>Người dùng</span>
+          <strong id="modalUserName">-</strong>
+        </div>
+        <div>
+          <span>Trận đấu</span>
+          <strong id="modalMatchName">-</strong>
+        </div>
+        <div>
+          <span>Ngày · Giờ</span>
+          <strong id="modalDateTime">-</strong>
+        </div>
+        <div>
+          <span>Gia vị</span>
+          <strong id="modalHandicap">-</strong>
+        </div>
+        <div>
+          <span>Hạn dự đoán</span>
+          <strong id="modalDeadline">-</strong>
+        </div>
+      </div>
+
+      <div class="modal-explanation-box">
+        <span>Giải thích gia vị</span>
+        <strong id="modalHandicapExplanation">-</strong>
+      </div>
+
+      <div class="modal-current-box" id="modalCurrentBox">
+        <span>Dự đoán hiện tại</span>
+        <strong id="modalCurrentPrediction">-</strong>
+      </div>
+
+      <div id="modalPredictionOptions" class="modal-prediction-options" role="group" aria-label="Dự đoán"></div>
+      <div id="modalStatusBox" class="status-box" role="status">Sẵn sàng.</div>
+    </section>
+  </div>
 
   <footer>
     <span id="lastUpdated">Chưa tải dữ liệu.</span>
