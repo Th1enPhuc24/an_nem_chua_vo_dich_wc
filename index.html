@@ -92,13 +92,23 @@
 
     <section id="trackingPage" class="page">
       <div class="tracking-layout">
-        <section class="card table-card score-card">
-          <div class="section-head">
-            <h2>Tỷ số các trận đã có kết quả</h2>
-            <span id="finishedCount" class="pill">0 trận</span>
-          </div>
-          <div id="scoreTable" class="table-wrap score-table-wrap"></div>
-        </section>
+        <div class="tracking-left">
+          <section class="card table-card score-card">
+            <div class="section-head">
+              <h2>Tỷ số các trận đã có kết quả</h2>
+              <span id="finishedCount" class="pill">0 trận</span>
+            </div>
+            <div id="scoreTable" class="table-wrap score-table-wrap"></div>
+          </section>
+
+          <section class="card table-card upcoming-card">
+            <div class="section-head">
+              <h2>Các trận đấu sắp tới</h2>
+              <span id="upcomingCount" class="pill">0 trận</span>
+            </div>
+            <div id="upcomingTable" class="table-wrap upcoming-table-wrap"></div>
+          </section>
+        </div>
 
         <section class="card table-card ranking-card">
           <div class="section-head">
@@ -106,14 +116,6 @@
             <span class="pill">Tăng dần</span>
           </div>
           <div id="rankingTable" class="table-wrap ranking-table-wrap"></div>
-        </section>
-
-        <section class="card table-card prediction-detail-card">
-          <div class="section-head">
-            <h2>Chi tiết dự đoán</h2>
-            <span id="detailPredictionCount" class="pill">0 trận</span>
-          </div>
-          <div id="detailPredictionTable" class="table-wrap detail-prediction-table-wrap"></div>
         </section>
       </div>
     </section>

@@ -208,20 +208,19 @@ th {
   table-layout: fixed;
 }
 
-.schedule-table th:nth-child(1),
-.schedule-table td:nth-child(1) { width: 92px; }
+.schedule-table th:nth-child(1) { width: 92px; }
 .schedule-table th:nth-child(2),
-.schedule-table td:nth-child(2) { width: 72px; }
+.schedule-table .schedule-time-cell { width: 72px; }
 .schedule-table th:nth-child(3),
-.schedule-table td:nth-child(3) { width: 190px; }
+.schedule-table .schedule-match-cell { width: 190px; }
 .schedule-table th:nth-child(4),
-.schedule-table td:nth-child(4) { width: 70px; text-align: center; }
+.schedule-table .schedule-handicap-cell { width: 70px; text-align: center; }
 .schedule-table th:nth-child(5),
-.schedule-table td:nth-child(5) { width: 145px; text-align: center; }
+.schedule-table .schedule-deadline-cell { width: 145px; text-align: center; }
 .schedule-table th:nth-child(6),
-.schedule-table td:nth-child(6) { width: 112px; text-align: center; }
+.schedule-table .schedule-vote-cell { width: 112px; text-align: center; }
 .schedule-table th:nth-child(7),
-.schedule-table td:nth-child(7) { width: auto; min-width: 260px; }
+.schedule-table .schedule-explain-cell { width: auto; min-width: 260px; text-align: left; }
 
 .schedule-date-cell {
   background: #dcfce7;
@@ -287,7 +286,7 @@ th {
   display: grid;
   grid-template-columns: minmax(320px, 0.36fr) minmax(0, 0.64fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .info-grid {
@@ -328,6 +327,17 @@ th {
   line-height: 1.45;
 }
 
+.expert-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.expert-card .section-head,
+.expert-card .expert-hint {
+  flex: 0 0 auto;
+}
+
 .expert-hint,
 .hint {
   color: var(--muted);
@@ -338,9 +348,11 @@ th {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  max-height: 270px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
   padding-right: 4px;
+  align-content: start;
 }
 
 .expert-box {
@@ -397,105 +409,21 @@ th {
 
 .tracking-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.85fr);
-  grid-template-areas:
-    "score ranking"
-    "detail detail";
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.9fr);
   gap: 22px;
   align-items: stretch;
 }
 
-.score-card {
-  grid-area: score;
+.tracking-left {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 22px;
   min-width: 0;
 }
 
-.ranking-card {
-  grid-area: ranking;
-  min-width: 0;
-}
-
-.prediction-detail-card {
-  grid-area: detail;
-  min-width: 0;
-}
-
-.score-card,
-.ranking-card {
-  min-height: 380px;
-  display: flex;
-  flex-direction: column;
-}
-
-.score-card .table-wrap,
-.ranking-card .table-wrap {
-  flex: 1;
-}
-
-.score-table-wrap,
-.ranking-table-wrap {
-  max-height: 310px;
-}
-
-.detail-prediction-table-wrap {
-  max-height: 560px;
-  overflow: auto;
-}
-
-.detail-prediction-table {
-  min-width: 1680px;
-  table-layout: fixed;
-}
-
-.detail-prediction-table th,
-.detail-prediction-table td {
-  white-space: nowrap;
-  text-align: center;
-}
-
-.detail-prediction-table th:first-child,
-.detail-prediction-table td:first-child {
-  width: 260px;
-  text-align: left;
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  background: #fff;
-}
-
-.detail-prediction-table thead th:first-child {
-  z-index: 4;
-  background: #fff7ed;
-}
-
-.detail-prediction-table th:nth-child(2),
-.detail-prediction-table td:nth-child(2),
-.detail-prediction-table th:nth-child(3),
-.detail-prediction-table td:nth-child(3) {
-  width: 110px;
-}
-
-.detail-prediction-table .user-prediction-header {
-  width: 96px;
-}
-
-.prediction-detail-cell.win {
-  color: var(--success);
-  background: var(--success-bg);
-  font-weight: 900;
-}
-
-.prediction-detail-cell.draw {
-  color: var(--warning);
-  background: var(--warning-bg);
-  font-weight: 900;
-}
-
-.prediction-detail-cell.lose {
-  color: var(--error);
-  background: var(--error-bg);
-  font-weight: 900;
-}
+.score-table-wrap { max-height: 300px; }
+.upcoming-table-wrap { max-height: 420px; }
+.ranking-table-wrap { max-height: 748px; }
 
 .modal-backdrop {
   position: fixed;
@@ -579,13 +507,6 @@ footer {
   .detail-expert-grid,
   .tracking-layout {
     grid-template-columns: 1fr;
-  }
-
-  .tracking-layout {
-    grid-template-areas:
-      "score"
-      "ranking"
-      "detail";
   }
 
   .expert-opinions-grid {
