@@ -395,59 +395,23 @@ th {
 .status-box.error { color: var(--error); background: #fef2f2; border-color: #fecaca; }
 .status-box.loading { color: var(--accent-dark); background: #fff7ed; border-color: var(--line); }
 
-.tracking-dashboard-grid {
+.tracking-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.85fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.9fr);
+  gap: 22px;
   align-items: stretch;
 }
 
-.score-card,
-.ranking-card {
+.tracking-left {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 22px;
   min-width: 0;
-  min-height: 360px;
-  display: flex;
-  flex-direction: column;
 }
 
-.score-table-wrap,
-.ranking-table-wrap {
-  flex: 1;
-  max-height: none;
-  min-height: 270px;
-}
-
-.prediction-detail-card {
-  margin-top: 18px;
-}
-
-.detail-prediction-table-wrap {
-  max-height: 520px;
-  overflow: auto;
-}
-
-#detailPredictionTable table {
-  min-width: 1680px;
-}
-
-#detailPredictionTable th,
-#detailPredictionTable td {
-  white-space: nowrap;
-  font-size: 13px;
-}
-
-#detailPredictionTable th:nth-child(1),
-#detailPredictionTable td:nth-child(1) {
-  min-width: 240px;
-  white-space: normal;
-}
-
-#detailPredictionTable th:nth-child(2),
-#detailPredictionTable td:nth-child(2),
-#detailPredictionTable th:nth-child(3),
-#detailPredictionTable td:nth-child(3) {
-  min-width: 120px;
-}
+.score-table-wrap { max-height: 300px; }
+.upcoming-table-wrap { max-height: 420px; }
+.ranking-table-wrap { max-height: 748px; }
 
 .modal-backdrop {
   position: fixed;
@@ -529,7 +493,7 @@ footer {
 
 @media (max-width: 1080px) {
   .detail-expert-grid,
-  .tracking-dashboard-grid {
+  .tracking-layout {
     grid-template-columns: 1fr;
   }
 
@@ -548,93 +512,69 @@ footer {
   .schedule-table { min-width: 900px; }
 }
 
-/* Final verification fix: keep merged date, but align columns by explicit classes instead of nth-child. */
-.schedule-table {
-  table-layout: fixed;
-}
-
-.schedule-col-date { width: 92px; }
-.schedule-col-time { width: 72px; }
-.schedule-col-match { width: 220px; }
-.schedule-col-handicap { width: 78px; }
-.schedule-col-deadline { width: 150px; }
-.schedule-col-choice { width: 116px; }
-.schedule-col-explain { width: auto; }
-
-.schedule-table th,
-.schedule-table td {
+/* Final verified v3: keep current logic, polish requested table coloring/layout only */
+.schedule-table .schedule-handicap-cell {
+  text-align: center !important;
   vertical-align: middle;
 }
 
-.schedule-date-cell {
-  text-align: center;
-}
-
-.schedule-time-cell {
-  text-align: left;
-  white-space: nowrap;
-}
-
-.schedule-match-cell {
-  text-align: left;
-}
-
-.schedule-handicap-cell {
-  text-align: center !important;
-  white-space: nowrap;
-}
-
-.schedule-deadline-cell,
-.schedule-choice-cell {
-  text-align: center;
-}
-
-.schedule-explain-cell {
+.schedule-table .schedule-explain-cell {
   text-align: left !important;
+  vertical-align: middle;
   font-size: 12px;
   line-height: 1.35;
   color: #374151;
 }
 
-/* Ensure information panel and expert panel have the same visual height; expert content scrolls internally. */
+.schedule-table .schedule-time-cell,
+.schedule-table .schedule-deadline-cell,
+.schedule-table .schedule-action-cell {
+  vertical-align: middle;
+}
+
 .detail-expert-grid {
   align-items: stretch !important;
 }
 
 .info-card,
 .expert-card {
-  min-height: 0;
+  height: 100%;
 }
 
 .expert-card {
   display: flex;
   flex-direction: column;
-}
-
-.expert-card .section-head,
-.expert-card .expert-hint {
-  flex: 0 0 auto;
+  min-height: 0;
 }
 
 .expert-opinions-grid {
-  flex: 1 1 auto;
+  flex: 1;
   min-height: 0;
-  max-height: none;
+  max-height: none !important;
   overflow: auto;
 }
 
-/* Tracking page: keep width/layout, reduce vertical length and use scrollbars. */
-.score-card,
-.ranking-card {
-  min-height: 0 !important;
-  height: 320px;
+.tracking-top-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 18px;
+}
+
+.tracking-top-grid .score-card,
+.tracking-top-grid .ranking-card {
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .score-table-wrap,
 .ranking-table-wrap {
-  flex: 1 1 auto;
-  min-height: 0 !important;
+  flex: 1;
   max-height: none !important;
+  min-height: 0;
   overflow: auto;
 }
 
@@ -642,16 +582,70 @@ footer {
   margin-top: 18px;
 }
 
-.detail-prediction-table-wrap {
-  max-height: 430px;
+.prediction-detail-table-wrap {
+  max-height: 520px;
+  min-height: 360px;
   overflow: auto;
 }
 
-/* Hard width overrides for rows affected by rowspan/date merging. */
-.schedule-date-cell { width: 92px !important; }
-.schedule-time-cell { width: 72px !important; }
-.schedule-match-cell { width: 220px !important; }
-.schedule-handicap-cell { width: 78px !important; }
-.schedule-deadline-cell { width: 150px !important; }
-.schedule-choice-cell { width: 116px !important; }
-.schedule-explain-cell { width: auto !important; }
+.prediction-detail-table {
+  min-width: 1500px;
+  table-layout: auto;
+}
+
+.prediction-detail-table th,
+.prediction-detail-table td {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.prediction-detail-table .detail-menu-cell {
+  text-align: left;
+  min-width: 220px;
+  white-space: normal;
+}
+
+.detail-prediction-cell {
+  font-weight: 800;
+}
+
+.detail-prediction-cell.prediction-open-win,
+.detail-prediction-cell.prediction-correct {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.detail-prediction-cell.prediction-open-draw {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.detail-prediction-cell.prediction-open-lose,
+.detail-prediction-cell.prediction-wrong {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.ranking-table tbody tr.rank-top-1 td {
+  background: #fef3c7 !important;
+  color: #92400e;
+  font-weight: 900;
+}
+
+.ranking-table tbody tr.rank-top-2 td {
+  background: #e5e7eb !important;
+  color: #374151;
+  font-weight: 900;
+}
+
+.ranking-table tbody tr.rank-top-3 td {
+  background: #fed7aa !important;
+  color: #9a3412;
+  font-weight: 900;
+}
+
+@media (max-width: 1080px) {
+  .tracking-top-grid {
+    grid-template-columns: 1fr;
+  }
+}

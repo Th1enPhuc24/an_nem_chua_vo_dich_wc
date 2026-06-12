@@ -28,9 +28,9 @@ const els = {
   expertOpinionCount: document.getElementById('expertOpinionCount'),
   scoreTable: document.getElementById('scoreTable'),
   rankingTable: document.getElementById('rankingTable'),
-  detailPredictionTable: document.getElementById('detailPredictionTable'),
+  predictionDetailTable: document.getElementById('predictionDetailTable'),
   finishedCount: document.getElementById('finishedCount'),
-  detailPredictionCount: document.getElementById('detailPredictionCount'),
+  predictionDetailCount: document.getElementById('predictionDetailCount'),
   lastUpdated: document.getElementById('lastUpdated'),
   refreshBtn: document.getElementById('refreshBtn'),
   modal: document.getElementById('predictionModal'),
@@ -174,21 +174,12 @@ function renderScheduleTable() {
       <td class="schedule-match-cell"><button class="match-link" type="button" data-row-index="${match.rowIndex}">${escapeHtml(match.matchName)}</button></td>
       <td class="schedule-handicap-cell">${escapeHtml(match.handicap || '-')}</td>
       <td class="schedule-deadline-cell">${escapeHtml(formatDeadline(match.lockAt))}</td>
-      <td class="schedule-choice-cell">${voteHtml}</td>
+      <td class="schedule-action-cell">${voteHtml}</td>
       <td class="schedule-explain-cell">${explanation ? escapeHtml(explanation) : '-'}</td>
     </tr>`;
   }).join('');
 
   els.scheduleTable.innerHTML = `<table class="schedule-table">
-    <colgroup>
-      <col class="schedule-col-date">
-      <col class="schedule-col-time">
-      <col class="schedule-col-match">
-      <col class="schedule-col-handicap">
-      <col class="schedule-col-deadline">
-      <col class="schedule-col-choice">
-      <col class="schedule-col-explain">
-    </colgroup>
     <thead><tr>
       <th>Ngày</th>
       <th>Giờ</th>
@@ -407,10 +398,8 @@ function getPredictionClass(prediction) {
 }
 
 function renderTrackingTables() {
-  els.finishedCount.textContent = state.finishedMatches.length + ' trận';
-  if (els.detailPredictionCount) {
-    els.detailPredictionCount.textContent = state.matches.length + ' trận';
-  }
+  if (els.finishedCount) els.finishedCount.textContent = state.finishedMatches.length + ' trận';
+  if (els.predictionDetailCount) els.predictionDetailCount.textContent = state.matches.length + ' trận';
 
   renderTable(
     els.scoreTable,
@@ -419,37 +408,75 @@ function renderTrackingTables() {
     'Chưa có trận nào có kết quả.'
   );
 
-  renderTable(
-    els.rankingTable,
-    ['Tên người dùng', 'Số nem chua đã đóng góp'],
-    state.rankings.map(u => [u.name, u.contributionDisplay]),
-    'Chưa có dữ liệu người dùng.'
-  );
-
-  renderDetailPredictionTable();
+  renderRankingTable();
+  renderPredictionDetailTable();
 }
 
-function renderDetailPredictionTable() {
-  if (!els.detailPredictionTable) return;
+function renderRankingTable() {
+  if (!els.rankingTable) return;
+  if (!state.rankings || state.rankings.length === 0) {
+    els.rankingTable.innerHTML = '<p class="empty">Chưa có dữ liệu người dùng.</p>';
+    return;
+  }
 
-  const headers = [
-    'Menu',
-    'Tỷ lệ chấp',
-    'Kết quả trận đấu',
-    ...state.users.map(user => user.name)
-  ];
+  const rows = state.rankings.map((user, index) => {
+    const rankClass = index === 0 ? 'rank-top-1' : index === 1 ? 'rank-top-2' : index === 2 ? 'rank-top-3' : '';
+    const icon = index === 0 ? '🏅🏆 ' : index === 1 ? '🥈 ' : index === 2 ? '🥉 ' : '';
+    return `<tr class="${rankClass}">
+      <td>${icon}${escapeHtml(user.name)}</td>
+      <td>${escapeHtml(user.contributionDisplay)}</td>
+    </tr>`;
+  }).join('');
 
+  els.rankingTable.innerHTML = `<table class="ranking-table">
+    <thead><tr><th>Tên người dùng</th><th>Số nem chua đã đóng góp</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderPredictionDetailTable() {
+  if (!els.predictionDetailTable) return;
+  if (!state.matches || state.matches.length === 0) {
+    els.predictionDetailTable.innerHTML = '<p class="empty">Chưa có dữ liệu trận đấu.</p>';
+    return;
+  }
+
+  const userHeaders = state.users.map(user => `<th>${escapeHtml(user.name)}</th>`).join('');
   const rows = state.matches.map(match => {
-    const userPredictions = state.users.map(user => getPredictionFor(match, user) || '');
-    return [
-      match.matchName,
-      match.handicap || '-',
-      match.score || '',
-      ...userPredictions
-    ];
-  });
+    const userCells = state.users.map(user => {
+      const prediction = getPredictionFor(match, user);
+      const cls = getDetailPredictionClass(match, prediction);
+      return `<td class="detail-prediction-cell ${cls}">${escapeHtml(prediction || '')}</td>`;
+    }).join('');
+    return `<tr>
+      <td class="detail-menu-cell">${escapeHtml(match.matchName)}</td>
+      <td>${escapeHtml(match.handicap || '')}</td>
+      <td>${escapeHtml(match.resultAfterHandicap || '')}</td>
+      ${userCells}
+    </tr>`;
+  }).join('');
 
-  renderTable(els.detailPredictionTable, headers, rows, 'Chưa có dữ liệu dự đoán.');
+  els.predictionDetailTable.innerHTML = `<table class="prediction-detail-table">
+    <thead><tr>
+      <th>Menu</th>
+      <th>Tỷ lệ chấp</th>
+      <th>Kết quả trận đấu</th>
+      ${userHeaders}
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function getDetailPredictionClass(match, prediction) {
+  if (!prediction) return '';
+  const hasScore = String(match.score || '').trim() !== '';
+  if (hasScore) {
+    return prediction === match.resultAfterHandicap ? 'prediction-correct' : 'prediction-wrong';
+  }
+  if (prediction === 'Thắng') return 'prediction-open-win';
+  if (prediction === 'Hòa') return 'prediction-open-draw';
+  if (prediction === 'Thua') return 'prediction-open-lose';
+  return '';
 }
 
 function renderTable(container, headers, rows, emptyText) {
