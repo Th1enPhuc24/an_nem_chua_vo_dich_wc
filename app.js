@@ -27,10 +27,10 @@ const els = {
   expertOpinions: document.getElementById('expertOpinions'),
   expertOpinionCount: document.getElementById('expertOpinionCount'),
   scoreTable: document.getElementById('scoreTable'),
-  upcomingTable: document.getElementById('upcomingTable'),
   rankingTable: document.getElementById('rankingTable'),
+  detailPredictionTable: document.getElementById('detailPredictionTable'),
   finishedCount: document.getElementById('finishedCount'),
-  upcomingCount: document.getElementById('upcomingCount'),
+  detailPredictionCount: document.getElementById('detailPredictionCount'),
   lastUpdated: document.getElementById('lastUpdated'),
   refreshBtn: document.getElementById('refreshBtn'),
   modal: document.getElementById('predictionModal'),
@@ -174,12 +174,21 @@ function renderScheduleTable() {
       <td class="schedule-match-cell"><button class="match-link" type="button" data-row-index="${match.rowIndex}">${escapeHtml(match.matchName)}</button></td>
       <td class="schedule-handicap-cell">${escapeHtml(match.handicap || '-')}</td>
       <td class="schedule-deadline-cell">${escapeHtml(formatDeadline(match.lockAt))}</td>
-      <td class="schedule-vote-cell">${voteHtml}</td>
-      <td class="schedule-explain-cell schedule-explain">${explanation ? escapeHtml(explanation) : '-'}</td>
+      <td class="schedule-choice-cell">${voteHtml}</td>
+      <td class="schedule-explain-cell">${explanation ? escapeHtml(explanation) : '-'}</td>
     </tr>`;
   }).join('');
 
   els.scheduleTable.innerHTML = `<table class="schedule-table">
+    <colgroup>
+      <col class="schedule-col-date">
+      <col class="schedule-col-time">
+      <col class="schedule-col-match">
+      <col class="schedule-col-handicap">
+      <col class="schedule-col-deadline">
+      <col class="schedule-col-choice">
+      <col class="schedule-col-explain">
+    </colgroup>
     <thead><tr>
       <th>Ngày</th>
       <th>Giờ</th>
@@ -399,10 +408,48 @@ function getPredictionClass(prediction) {
 
 function renderTrackingTables() {
   els.finishedCount.textContent = state.finishedMatches.length + ' trận';
-  els.upcomingCount.textContent = state.upcomingMatches.length + ' trận';
-  renderTable(els.scoreTable, ['Ngày', 'Giờ', 'Trận đấu', 'Tỷ số', 'Sau gia vị'], state.finishedMatches.map(m => [m.date, m.time, m.matchName, m.score, m.resultAfterHandicap || '-']), 'Chưa có trận nào có kết quả.');
-  renderTable(els.upcomingTable, ['Ngày', 'Giờ', 'Trận đấu', 'Gia vị', 'Hạn dự đoán'], state.upcomingMatches.map(m => [m.date, m.time, m.matchName, m.handicap || '-', formatDeadline(m.lockAt)]), 'Không còn trận sắp tới.');
-  renderTable(els.rankingTable, ['Tên người dùng', 'Số nem chua đã đóng góp'], state.rankings.map(u => [u.name, u.contributionDisplay]), 'Chưa có dữ liệu người dùng.');
+  if (els.detailPredictionCount) {
+    els.detailPredictionCount.textContent = state.matches.length + ' trận';
+  }
+
+  renderTable(
+    els.scoreTable,
+    ['Ngày', 'Giờ', 'Trận đấu', 'Tỷ số', 'Sau gia vị'],
+    state.finishedMatches.map(m => [m.date, m.time, m.matchName, m.score, m.resultAfterHandicap || '-']),
+    'Chưa có trận nào có kết quả.'
+  );
+
+  renderTable(
+    els.rankingTable,
+    ['Tên người dùng', 'Số nem chua đã đóng góp'],
+    state.rankings.map(u => [u.name, u.contributionDisplay]),
+    'Chưa có dữ liệu người dùng.'
+  );
+
+  renderDetailPredictionTable();
+}
+
+function renderDetailPredictionTable() {
+  if (!els.detailPredictionTable) return;
+
+  const headers = [
+    'Menu',
+    'Tỷ lệ chấp',
+    'Kết quả trận đấu',
+    ...state.users.map(user => user.name)
+  ];
+
+  const rows = state.matches.map(match => {
+    const userPredictions = state.users.map(user => getPredictionFor(match, user) || '');
+    return [
+      match.matchName,
+      match.handicap || '-',
+      match.score || '',
+      ...userPredictions
+    ];
+  });
+
+  renderTable(els.detailPredictionTable, headers, rows, 'Chưa có dữ liệu dự đoán.');
 }
 
 function renderTable(container, headers, rows, emptyText) {

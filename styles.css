@@ -208,19 +208,20 @@ th {
   table-layout: fixed;
 }
 
-.schedule-table th:nth-child(1) { width: 92px; }
+.schedule-table th:nth-child(1),
+.schedule-table td:nth-child(1) { width: 92px; }
 .schedule-table th:nth-child(2),
-.schedule-table .schedule-time-cell { width: 72px; }
+.schedule-table td:nth-child(2) { width: 72px; }
 .schedule-table th:nth-child(3),
-.schedule-table .schedule-match-cell { width: 190px; }
+.schedule-table td:nth-child(3) { width: 190px; }
 .schedule-table th:nth-child(4),
-.schedule-table .schedule-handicap-cell { width: 70px; text-align: center; }
+.schedule-table td:nth-child(4) { width: 70px; text-align: center; }
 .schedule-table th:nth-child(5),
-.schedule-table .schedule-deadline-cell { width: 145px; text-align: center; }
+.schedule-table td:nth-child(5) { width: 145px; text-align: center; }
 .schedule-table th:nth-child(6),
-.schedule-table .schedule-vote-cell { width: 112px; text-align: center; }
+.schedule-table td:nth-child(6) { width: 112px; text-align: center; }
 .schedule-table th:nth-child(7),
-.schedule-table .schedule-explain-cell { width: auto; min-width: 260px; text-align: left; }
+.schedule-table td:nth-child(7) { width: auto; min-width: 260px; }
 
 .schedule-date-cell {
   background: #dcfce7;
@@ -286,7 +287,7 @@ th {
   display: grid;
   grid-template-columns: minmax(320px, 0.36fr) minmax(0, 0.64fr);
   gap: 18px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .info-grid {
@@ -327,17 +328,6 @@ th {
   line-height: 1.45;
 }
 
-.expert-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.expert-card .section-head,
-.expert-card .expert-hint {
-  flex: 0 0 auto;
-}
-
 .expert-hint,
 .hint {
   color: var(--muted);
@@ -348,11 +338,9 @@ th {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  flex: 1 1 auto;
-  min-height: 0;
+  max-height: 270px;
   overflow: auto;
   padding-right: 4px;
-  align-content: start;
 }
 
 .expert-box {
@@ -407,23 +395,59 @@ th {
 .status-box.error { color: var(--error); background: #fef2f2; border-color: #fecaca; }
 .status-box.loading { color: var(--accent-dark); background: #fff7ed; border-color: var(--line); }
 
-.tracking-layout {
+.tracking-dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.9fr);
-  gap: 22px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.85fr);
+  gap: 18px;
   align-items: stretch;
 }
 
-.tracking-left {
-  display: grid;
-  grid-template-rows: auto auto;
-  gap: 22px;
+.score-card,
+.ranking-card {
   min-width: 0;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
 }
 
-.score-table-wrap { max-height: 300px; }
-.upcoming-table-wrap { max-height: 420px; }
-.ranking-table-wrap { max-height: 748px; }
+.score-table-wrap,
+.ranking-table-wrap {
+  flex: 1;
+  max-height: none;
+  min-height: 270px;
+}
+
+.prediction-detail-card {
+  margin-top: 18px;
+}
+
+.detail-prediction-table-wrap {
+  max-height: 520px;
+  overflow: auto;
+}
+
+#detailPredictionTable table {
+  min-width: 1680px;
+}
+
+#detailPredictionTable th,
+#detailPredictionTable td {
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+#detailPredictionTable th:nth-child(1),
+#detailPredictionTable td:nth-child(1) {
+  min-width: 240px;
+  white-space: normal;
+}
+
+#detailPredictionTable th:nth-child(2),
+#detailPredictionTable td:nth-child(2),
+#detailPredictionTable th:nth-child(3),
+#detailPredictionTable td:nth-child(3) {
+  min-width: 120px;
+}
 
 .modal-backdrop {
   position: fixed;
@@ -505,7 +529,7 @@ footer {
 
 @media (max-width: 1080px) {
   .detail-expert-grid,
-  .tracking-layout {
+  .tracking-dashboard-grid {
     grid-template-columns: 1fr;
   }
 
@@ -523,3 +547,111 @@ footer {
   .schedule-table-wrap { overflow-x: auto; }
   .schedule-table { min-width: 900px; }
 }
+
+/* Final verification fix: keep merged date, but align columns by explicit classes instead of nth-child. */
+.schedule-table {
+  table-layout: fixed;
+}
+
+.schedule-col-date { width: 92px; }
+.schedule-col-time { width: 72px; }
+.schedule-col-match { width: 220px; }
+.schedule-col-handicap { width: 78px; }
+.schedule-col-deadline { width: 150px; }
+.schedule-col-choice { width: 116px; }
+.schedule-col-explain { width: auto; }
+
+.schedule-table th,
+.schedule-table td {
+  vertical-align: middle;
+}
+
+.schedule-date-cell {
+  text-align: center;
+}
+
+.schedule-time-cell {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.schedule-match-cell {
+  text-align: left;
+}
+
+.schedule-handicap-cell {
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+.schedule-deadline-cell,
+.schedule-choice-cell {
+  text-align: center;
+}
+
+.schedule-explain-cell {
+  text-align: left !important;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #374151;
+}
+
+/* Ensure information panel and expert panel have the same visual height; expert content scrolls internally. */
+.detail-expert-grid {
+  align-items: stretch !important;
+}
+
+.info-card,
+.expert-card {
+  min-height: 0;
+}
+
+.expert-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.expert-card .section-head,
+.expert-card .expert-hint {
+  flex: 0 0 auto;
+}
+
+.expert-opinions-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+}
+
+/* Tracking page: keep width/layout, reduce vertical length and use scrollbars. */
+.score-card,
+.ranking-card {
+  min-height: 0 !important;
+  height: 320px;
+}
+
+.score-table-wrap,
+.ranking-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: auto;
+}
+
+.prediction-detail-card {
+  margin-top: 18px;
+}
+
+.detail-prediction-table-wrap {
+  max-height: 430px;
+  overflow: auto;
+}
+
+/* Hard width overrides for rows affected by rowspan/date merging. */
+.schedule-date-cell { width: 92px !important; }
+.schedule-time-cell { width: 72px !important; }
+.schedule-match-cell { width: 220px !important; }
+.schedule-handicap-cell { width: 78px !important; }
+.schedule-deadline-cell { width: 150px !important; }
+.schedule-choice-cell { width: 116px !important; }
+.schedule-explain-cell { width: auto !important; }
