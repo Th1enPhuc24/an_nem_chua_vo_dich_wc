@@ -29,6 +29,13 @@ const els = {
   scoreTable: document.getElementById('scoreTable'),
   rankingTable: document.getElementById('rankingTable'),
   predictionDetailTable: document.getElementById('predictionDetailTable'),
+  liveMatchTable: document.getElementById('liveMatchTable'),
+  liveMatchCount: document.getElementById('liveMatchCount'),
+  headerLivePanel: document.getElementById('headerLivePanel'),
+  headerLiveMatchTable: document.getElementById('headerLiveMatchTable'),
+  headerLiveMatchCount: document.getElementById('headerLiveMatchCount'),
+  headerTotalPanel: document.getElementById('headerTotalPanel'),
+  headerTotalValue: document.getElementById('headerTotalValue'),
   finishedCount: document.getElementById('finishedCount'),
   predictionDetailCount: document.getElementById('predictionDetailCount'),
   lastUpdated: document.getElementById('lastUpdated'),
@@ -43,6 +50,8 @@ const els = {
   modalHandicapExplanation: document.getElementById('modalHandicapExplanation'),
   modalCurrentBox: document.getElementById('modalCurrentBox'),
   modalCurrentPrediction: document.getElementById('modalCurrentPrediction'),
+  modalExpertOpinions: document.getElementById('modalExpertOpinions'),
+  modalExpertCount: document.getElementById('modalExpertCount'),
   modalPredictionOptions: document.getElementById('modalPredictionOptions'),
   modalStatusBox: document.getElementById('modalStatusBox')
 };
@@ -115,6 +124,14 @@ function renderAll() {
   renderSelectedInfo();
   renderExpertOpinions();
   renderTrackingTables();
+  renderHeaderTotalPanel();
+}
+
+// Tổng số nem chua đã đóng góp của tất cả người chơi (chỉ tính ở frontend).
+function renderHeaderTotalPanel() {
+  if (!els.headerTotalValue) return;
+  const total = (state.users || []).reduce((sum, u) => sum + (Number(u.contribution) || 0), 0);
+  els.headerTotalValue.textContent = total.toLocaleString('vi-VN');
 }
 
 function renderUserSelect() {
@@ -215,6 +232,22 @@ function renderSelectedInfo() {
   els.handicapExplanation.textContent = match ? getFullHandicapExplanation(match) : '-';
 }
 
+function buildExpertOpinionsData(match) {
+  const opinionRows = state.users.map(user => {
+    const prediction = getPredictionFor(match, user);
+    return { name: user.name, prediction: prediction || 'Chưa dự đoán', hasPrediction: Boolean(prediction) };
+  });
+  const predictionCount = opinionRows.filter(item => item.hasPrediction).length;
+  const html = opinionRows.map(item => {
+    const predictionClass = item.hasPrediction ? 'expert-prediction' : 'expert-prediction empty-prediction';
+    return `<article class="expert-box">
+      <span class="expert-name">${escapeHtml(item.name)}</span>
+      <strong class="${predictionClass}">${escapeHtml(item.prediction)}</strong>
+    </article>`;
+  }).join('');
+  return { html, predictionCount, total: opinionRows.length };
+}
+
 function renderExpertOpinions() {
   const match = getSelectedMatch();
   if (!match) {
@@ -223,29 +256,27 @@ function renderExpertOpinions() {
     return;
   }
 
-  const opinionRows = state.users.map(user => {
-    const prediction = getPredictionFor(match, user);
-    return { name: user.name, prediction: prediction || 'Chưa dự đoán', hasPrediction: Boolean(prediction) };
-  });
-  const predictionCount = opinionRows.filter(item => item.hasPrediction).length;
-  els.expertOpinionCount.textContent = predictionCount + '/' + opinionRows.length + ' ý kiến';
-  els.expertOpinions.innerHTML = opinionRows.map(item => {
-    const predictionClass = item.hasPrediction ? 'expert-prediction' : 'expert-prediction empty-prediction';
-    return `<article class="expert-box">
-      <span class="expert-name">${escapeHtml(item.name)}</span>
-      <strong class="${predictionClass}">${escapeHtml(item.prediction)}</strong>
-    </article>`;
-  }).join('');
+  const { html, predictionCount, total } = buildExpertOpinionsData(match);
+  els.expertOpinionCount.textContent = predictionCount + '/' + total + ' ý kiến';
+  els.expertOpinions.innerHTML = html;
+}
+
+function renderModalExpertOpinions(match) {
+  if (!els.modalExpertOpinions) return;
+  const { html, predictionCount, total } = buildExpertOpinionsData(match);
+  if (els.modalExpertCount) els.modalExpertCount.textContent = predictionCount + '/' + total + ' ý kiến';
+  els.modalExpertOpinions.innerHTML = html || '<p class="empty">Chưa có người chơi nào.</p>';
 }
 
 function openPredictionModal(rowIndex) {
-  const user = getSelectedUser();
   const match = state.matches.find(m => m.rowIndex === Number(rowIndex));
-  if (!user) {
+  if (!match) return;
+  const user = getSelectedUser();
+  // Trận đã khóa chỉ để xem nên không bắt buộc chọn người dùng.
+  if (!user && !match.isPredictionLocked) {
     alert('Vui lòng chọn tên người dùng trước khi dự đoán.');
     return;
   }
-  if (!match) return;
   selectedMatchRowIndex = match.rowIndex;
   modalMatchRowIndex = match.rowIndex;
   renderAll();
@@ -262,14 +293,16 @@ function closePredictionModal() {
 
 function renderModal(match, user) {
   const currentPrediction = getPredictionFor(match, user);
-  els.modalUserName.textContent = user.name;
+  els.modalUserName.textContent = user ? user.name : 'Chưa chọn';
   els.modalMatchName.textContent = match.matchName;
   els.modalDateTime.textContent = [match.date, match.time].filter(Boolean).join(' · ');
   els.modalHandicap.textContent = match.handicap || 'Không có';
   els.modalDeadline.textContent = formatDeadline(match.lockAt);
   els.modalHandicapExplanation.textContent = getFullHandicapExplanation(match);
-  els.modalCurrentPrediction.textContent = currentPrediction || 'Chưa dự đoán';
+  els.modalCurrentPrediction.textContent = user ? (currentPrediction || 'Chưa dự đoán') : 'Chưa chọn người dùng';
   els.modalCurrentBox.className = 'modal-current-box ' + getPredictionClass(currentPrediction);
+
+  renderModalExpertOpinions(match);
 
   const options = getAllowedPredictionOptions(match);
   els.modalPredictionOptions.innerHTML = options.map(option => {
@@ -397,9 +430,60 @@ function getPredictionClass(prediction) {
   return '';
 }
 
+function getLiveMatches() {
+  return state.matches.filter(match =>
+    match.isPredictionLocked && String(match.score || '').trim() === ''
+  );
+}
+
+function buildLiveMatchTableHtml(matches, user) {
+  if (!matches.length) {
+    return '<p class="empty">Chưa có trận nào đang diễn ra.</p>';
+  }
+  const body = matches.map(match => {
+    const prediction = user ? getPredictionFor(match, user) : '';
+    const predCell = prediction
+      ? `<span class="vote-result ${getPredictionClass(prediction)}">${escapeHtml(prediction)}</span>`
+      : '<span class="muted-cell">Chưa dự đoán</span>';
+    return `<tr>
+      <td>${escapeHtml(match.date || '-')}</td>
+      <td>${escapeHtml(match.time || '-')}</td>
+      <td><button class="match-link" type="button" data-row-index="${match.rowIndex}">${escapeHtml(match.matchName)}</button></td>
+      <td class="live-center-cell">${escapeHtml(match.handicap || '-')}</td>
+      <td class="live-center-cell">${predCell}</td>
+    </tr>`;
+  }).join('');
+  return `<table class="live-match-table">
+    <thead><tr>
+      <th>Ngày</th>
+      <th>Giờ</th>
+      <th>Trận đấu</th>
+      <th>Gia vị</th>
+      <th>Dự đoán của bạn</th>
+    </tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+
+function renderLiveMatchTable() {
+  const matches = getLiveMatches();
+  const user = getSelectedUser();
+  const html = buildLiveMatchTableHtml(matches, user);
+  const countText = matches.length + ' trận';
+
+  [els.liveMatchTable, els.headerLiveMatchTable].forEach(el => {
+    if (el) el.innerHTML = html;
+  });
+  [els.liveMatchCount, els.headerLiveMatchCount].forEach(el => {
+    if (el) el.textContent = countText;
+  });
+}
+
 function renderTrackingTables() {
   if (els.finishedCount) els.finishedCount.textContent = state.finishedMatches.length + ' trận';
   if (els.predictionDetailCount) els.predictionDetailCount.textContent = state.matches.length + ' trận';
+
+  renderLiveMatchTable();
 
   renderTable(
     els.scoreTable,
@@ -443,8 +527,13 @@ function renderPredictionDetailTable() {
 
   const userHeaders = state.users.map(user => `<th>${escapeHtml(user.name)}</th>`).join('');
   const rows = state.matches.map(match => {
+    const matchHasScore = String(match.score || '').trim() !== '';
     const userCells = state.users.map(user => {
       const prediction = getPredictionFor(match, user);
+      // Trận đã có kết quả nhưng người chơi không dự đoán -> coi như "chấp", tô đỏ.
+      if (!prediction && matchHasScore) {
+        return `<td class="detail-prediction-cell prediction-na">Chấp anh em trận này</td>`;
+      }
       const cls = getDetailPredictionClass(match, prediction);
       return `<td class="detail-prediction-cell ${cls}">${escapeHtml(prediction || '')}</td>`;
     }).join('');
@@ -518,8 +607,18 @@ function setupTabs() {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById(tab.dataset.page).classList.add('active');
+      updateHeaderPanelsVisibility();
     });
   });
+  updateHeaderPanelsVisibility();
+}
+
+// Header bên phải: tab Dự đoán hiện panel "đang diễn ra";
+// tab Theo dõi hiện panel "Tổng tiền nem chua".
+function updateHeaderPanelsVisibility() {
+  const predictActive = document.getElementById('predictPage').classList.contains('active');
+  if (els.headerLivePanel) els.headerLivePanel.style.display = predictActive ? '' : 'none';
+  if (els.headerTotalPanel) els.headerTotalPanel.style.display = predictActive ? 'none' : '';
 }
 
 function setupEvents() {

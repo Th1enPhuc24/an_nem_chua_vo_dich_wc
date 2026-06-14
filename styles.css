@@ -39,8 +39,69 @@ footer,
   padding: 28px 0 14px;
   display: flex;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+}
+
+.app-header-titles {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-header-right {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  width: min(600px, 46%);
+}
+
+#refreshBtn {
+  align-self: flex-end;
+  padding: 9px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.header-live-card,
+.header-total-card {
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.header-live-card {
+  padding: 14px 16px;
+}
+
+.header-live-card h2 {
+  font-size: 18px;
+}
+
+.header-live-card .live-match-table-wrap {
+  max-height: 176px;
+}
+
+.header-total-card {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.header-total-card h2 {
+  font-size: 16px;
+  margin-bottom: 0;
+  line-height: 1.3;
+}
+
+.header-total-value {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--accent-dark);
+  letter-spacing: -0.01em;
 }
 
 .eyebrow {
@@ -504,6 +565,7 @@ footer {
 
 @media (max-width: 760px) {
   .app-header { align-items: flex-start; flex-direction: column; }
+  .app-header-right { width: 100%; }
   .user-picker-card { grid-template-columns: 1fr; }
   .info-grid,
   .modal-info-grid { grid-template-columns: 1fr; }
@@ -648,4 +710,110 @@ footer {
   .tracking-top-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Live matches (đã đóng dự đoán, chưa có kết quả) */
+.live-match-card {
+  margin-bottom: 18px;
+}
+
+.live-match-table-wrap {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.live-match-table .live-center-cell {
+  text-align: center;
+}
+
+.live-match-table .vote-result {
+  display: inline-block;
+  min-width: auto;
+  padding: 5px 12px;
+}
+
+.live-match-table .muted-cell {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Lựa chọn của tất cả người chơi trong modal */
+.modal-expert-section .section-head {
+  margin-bottom: 8px;
+}
+
+.modal-expert-section h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.modal-expert-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+@media (max-width: 760px) {
+  .modal-expert-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* (1) Trận đã có kết quả + người chơi không dự đoán -> "Chấp anh em trận này" */
+.detail-prediction-cell.prediction-na {
+  background: var(--error-bg);
+  color: var(--error);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* (2) Cố định 3 cột đầu (Menu / Tỷ lệ chấp / Kết quả trận đấu) khi cuộn ngang */
+.prediction-detail-table th:nth-child(1),
+.prediction-detail-table th:nth-child(2),
+.prediction-detail-table th:nth-child(3),
+.prediction-detail-table td:nth-child(1),
+.prediction-detail-table td:nth-child(2),
+.prediction-detail-table td:nth-child(3) {
+  position: sticky;
+}
+
+.prediction-detail-table td:nth-child(1),
+.prediction-detail-table td:nth-child(2),
+.prediction-detail-table td:nth-child(3) {
+  background: #fff;
+  z-index: 3;
+}
+
+.prediction-detail-table th:nth-child(1),
+.prediction-detail-table th:nth-child(2),
+.prediction-detail-table th:nth-child(3) {
+  z-index: 6;
+}
+
+.prediction-detail-table th:nth-child(1),
+.prediction-detail-table td:nth-child(1) {
+  left: 0;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+}
+
+.prediction-detail-table th:nth-child(2),
+.prediction-detail-table td:nth-child(2) {
+  left: 220px;
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
+}
+
+.prediction-detail-table th:nth-child(3),
+.prediction-detail-table td:nth-child(3) {
+  left: 330px;
+  min-width: 160px;
+  box-shadow: 2px 0 0 var(--line);
 }

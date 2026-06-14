@@ -1,19 +1,39 @@
 <!doctype html>
 <html lang="vi">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nem chua rán XCG SH</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <header class="app-header">
-    <div>
+    <div class="app-header-titles">
       <p class="eyebrow">Công cụ nội bộ</p>
       <h1>Nem chua rán XCG SH</h1>
       <p class="subtitle">Dự đoán kết quả · Theo dõi tỉ số · Bảng xếp hạng nem chua</p>
     </div>
-    <button id="refreshBtn" class="ghost-btn" type="button">Làm mới dữ liệu</button>
+
+    <div class="app-header-right">
+      <button id="refreshBtn" class="ghost-btn" type="button">Làm mới dữ liệu</button>
+
+      <section id="headerLivePanel" class="card live-match-card header-live-card">
+        <div class="section-head">
+          <h2>Các trận đấu đang diễn ra</h2>
+          <span id="headerLiveMatchCount" class="pill">0 trận</span>
+        </div>
+        <div id="headerLiveMatchTable" class="table-wrap live-match-table-wrap"></div>
+      </section>
+
+      <section id="headerTotalPanel" class="card header-total-card">
+        <div class="section-head">
+          <h2>Tổng số nem chua các đầu bếp đã đóng góp</h2>
+        </div>
+        <strong id="headerTotalValue" class="header-total-value">-</strong>
+      </section>
+    </div>
   </header>
 
   <nav class="tabs" aria-label="Điều hướng trang">
@@ -91,6 +111,16 @@
     </section>
 
     <section id="trackingPage" class="page">
+      <section class="card table-card live-match-card">
+        <div class="section-head">
+          <h2>Các trận đấu đang diễn ra</h2>
+          <span id="liveMatchCount" class="pill">0 trận</span>
+        </div>
+        <p class="hint">Trận đã đóng dự đoán nhưng chưa có kết quả. Bấm vào tên trận để xem chi tiết và lựa chọn của mọi
+          người.</p>
+        <div id="liveMatchTable" class="table-wrap live-match-table-wrap"></div>
+      </section>
+
       <div class="tracking-top-grid">
         <section class="card table-card score-card">
           <div class="section-head">
@@ -157,6 +187,14 @@
         <strong id="modalCurrentPrediction">-</strong>
       </div>
 
+      <div class="modal-expert-section">
+        <div class="section-head">
+          <h3>Lựa chọn của tất cả người chơi</h3>
+          <span id="modalExpertCount" class="pill">0 ý kiến</span>
+        </div>
+        <div id="modalExpertOpinions" class="modal-expert-grid"></div>
+      </div>
+
       <div id="modalPredictionOptions" class="modal-prediction-options" role="group" aria-label="Dự đoán"></div>
       <div id="modalStatusBox" class="status-box" role="status">Sẵn sàng.</div>
     </section>
@@ -168,4 +206,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
